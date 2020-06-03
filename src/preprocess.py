@@ -82,8 +82,6 @@ def generateRawFeatrues(mode='train'):
     for i, paper in enumerate(pubs_raw):
         title = paper['title']
         title = re.sub(r'\s{2,}', ' ', re.sub(r, ' ', title)).strip()
-        print(title)
-        exit(0)
         abstract = paper['abstract']
         abstract = re.sub(r'\s{2,}', ' ', re.sub(r, ' ', abstract)).strip()
         key_words = paper.get("keywords")
