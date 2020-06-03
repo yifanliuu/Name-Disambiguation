@@ -4,7 +4,6 @@ import re
 
 # ---------------load authors.json to generate ground truth and all papaers--------------
 
-
 def generateCandidateSets(mode='train'):
     '''
     mode: 'train' or 'val'
