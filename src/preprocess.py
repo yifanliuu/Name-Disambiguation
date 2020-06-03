@@ -4,6 +4,15 @@ import re
 
 # ---------------load authors.json to generate ground truth and all papaers--------------
 
+"""
+I got an idea here.
+sna_valid_*.json files are used for VALIDATE in the competition website only.
+But to test our model, we should seperate train_*.json to TRAIN dataset and TEST dataset.
+Maybe sampling randomly with 7:3 to generate TRAIN dataset and TEST dataset every time.
+I think it is nessesary, but how do you think about it?
+I will do this work tomorrow if you agree with me.
+"""
+
 
 def generateCandidateSets(mode='train'):
     '''
