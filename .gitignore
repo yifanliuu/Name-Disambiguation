@@ -2,3 +2,6 @@ dataset
 instructions
 src/__pycache__
 generate_features
+commit.sh
+push.sh
+query.sh
