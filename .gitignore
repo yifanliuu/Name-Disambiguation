@@ -5,3 +5,4 @@ generate_features
 commit.sh
 push.sh
 query.sh
+model

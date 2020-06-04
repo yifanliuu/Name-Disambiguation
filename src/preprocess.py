@@ -4,6 +4,9 @@ import config as cfg
 import numpy as np
 import string
 import re
+import logging
+from models import Word2Vec
+
 
 EMBEDDING_SIZE = 100
 del_str = string.punctuation
@@ -151,14 +154,15 @@ def generateRawFeatrues(mode='train'):
     r = r'[!“”"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~—～’]+'
 
     # embeddings, each one 100 dimension
-    word_embedding = KeyedVectors.load(cfg.WORD_EMBEDDING_MODEL_PATH)
+    word_embedding = Word2Vec()
+    word_embedding.load()
     # print(word_embedding['optimization'])
     # print(type(word_embedding['optimization']))
     # print(word_embedding['optimization'].size)
 
 
     sementic_features = {}
-    relation_features = {}
+
     count = 0
     for paperId, paperDetail in pubs_raw.items():
         title = paperDetail['title']
@@ -169,7 +173,7 @@ def generateRawFeatrues(mode='train'):
         year = paperDetail.get('year')
         authors = paperDetail.get('authors')
 
-        relation_features[paperId] = authors
+        # relation_features[paperId] = authors
         
         # NOTE: A paper have many authors with some organizations, but we calculate them several times, may be will be modified here.
         orglist = ''
@@ -201,7 +205,7 @@ def generateRawFeatrues(mode='train'):
 
         for i, word in enumerate(paper_embedding_words):
             try:
-                paper_embedding = paper_embedding + word_embedding[word]
+                paper_embedding = paper_embedding + word_embedding.model[word]
             except:
                 l = l - 1
 
@@ -219,8 +223,14 @@ def generateRawFeatrues(mode='train'):
     print('Wrting features to file......')
     save_pub_features(sementic_features)
 
-    return sementic_features, relation_features
+    return sementic_features
 
+
+def generate_wordembedding():
+    logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
+    word_embedding = Word2Vec()
+    word_embedding.train()
+    word_embedding.save()
 
 if __name__ == "__main__":
     pass
@@ -234,11 +244,14 @@ if __name__ == "__main__":
     # print(pubs_by_name)
 
     # ---------generateRawFeatrues test------------
-    # generateRawFeatrues()
+    generateRawFeatrues()
 
     # ---------generateCorpus test------------
     # generateCorpus()
 
+    # ---------generate_wordembedding test------------
+    # generate_wordembedding()
+
     # ---------Anything else test------------
-    features = load_pub_features()
-    print(features['cFtStBA6'])
+    # features = load_pub_features()
+    # print(features['cFtStBA6'])

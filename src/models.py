@@ -3,8 +3,29 @@ import torch
 from torch.nn.parameter import Parameter
 from torch.nn import Module
 from torch import nn
+from gensim.models import word2vec
+from gensim.models.keyedvectors import KeyedVectors
+import config as cfg
+
 
 # TODO: global embedding related models
+
+# ------------ Word2Vec Class --------------
+class Word2Vec():
+
+    def __init__(self):
+        return
+    
+    def train(self):
+        sentences = word2vec.Text8Corpus(cfg.ALL_TEXT_PATH)
+        self.model = word2vec.Word2Vec(sentences, size=100,negative =5, min_count=1, window=5)
+    
+    def save(self):
+        self.model.save(cfg.WORD_EMBEDDING_MODEL_PATH)
+
+    def load(self):
+        self.model = KeyedVectors.load(cfg.WORD_EMBEDDING_MODEL_PATH)
+
 
 # ------------GpraphConvolution Layer --------------
 
