@@ -1,7 +1,15 @@
 from utils import load_json
+from gensim.models.keyedvectors import KeyedVectors
 import config as cfg
+import numpy as np
 import string
 import re
+
+EMBEDDING_SIZE = 100
+del_str = string.punctuation
+replace_str = ' '*len(del_str)
+transTab = str.maketrans(del_str, replace_str)
+
 
 # ---------------generate all text using for train word embedding--------------
 """
@@ -37,7 +45,7 @@ def generateCorpus():
         line = line.translate(transTab)
         line = re.sub(r'\s{2,}', ' ', re.sub(r, ' ', line)).strip()
         line = line + '\n'
-        corpusFile.write(line)
+        corpusFile.write(line.lower())
     
     val_pubs_raw = load_json(cfg.VAL_PUB_PATH)
     for paperId, paperDetail in val_pubs_raw.items():
@@ -60,7 +68,7 @@ def generateCorpus():
         line = line.translate(transTab)
         line = re.sub(r'\s{2,}', ' ', re.sub(r, ' ', line)).strip()
         line = line + '\n'
-        corpusFile.write(line)
+        corpusFile.write(line.lower())
 
     return
 
@@ -87,6 +95,7 @@ def generateCandidateSets(mode='train'):
         pubs = []  # all papers
         labels = []  # ground truth
 
+    # TODO: take off stop words and words appear less then 3 times
         for identity in authors[name]:
             identity_pubs = authors[name][identity]
             for pub in identity_pubs:
@@ -139,21 +148,53 @@ def generateRawFeatrues(mode='train'):
 
     r = r'[!“”"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~—～’]+'
 
+    # embeddings, each one 100 dimension
+    word_embedding = KeyedVectors.load(cfg.WORD_EMBEDDING_MODEL_PATH)
+    # print(word_embedding['optimization'])
+    # print(type(word_embedding['optimization']))
+    # print(word_embedding['optimization'].size)
+
+
     sementic_features = {}
     relation_features = {}
     for paperId, paperDetail in pubs_raw.items():
         title = paperDetail['title']
-        title = re.sub(r'\s{2,}', ' ', re.sub(r, ' ', title)).strip()
         abstract = paperDetail['abstract']
-        abstract = re.sub(r'\s{2,}', ' ', re.sub(r, ' ', abstract)).strip()
-        
         key_words = paperDetail.get("keywords")
-        keyword = ','.join(key_words)
-        
+        keyword = ' '.join(key_words)
         venue_name = paperDetail.get('venue')
+        year = paperDetail.get('year')
         authors = paperDetail.get('authors')
 
+        relation_features[paperId] = authors
+        
+        # NOTE: A paper have many authors with some organizations, but we calculate them several times, may be will be modified here.
+        orglist = ''
+ 
+        for author in authors:
+            orgs = author['org'].split(';')
+            for org in orgs:
+                if org not in orglist:
+                    orglist = orglist + org
 
+        paper_words = title + ' ' + abstract + ' ' + keyword + ' ' + venue_name + ' ' + str(year) + ' ' + orglist
+        # print(paper_words)
+        paper_words = paper_words.translate(transTab)
+        paper_words = re.sub(r'\s{2,}', ' ', re.sub(r, ' ', paper_words)).strip()
+        # print(paper_words)
+
+        paper_words = paper_words.lower().split(' ')
+
+        for word in 
+
+        paper_embedding = np.zeros(EMBEDDING_SIZE)
+        for i, word in enumerate(paper_words):
+            paper_embedding = paper_embedding + word_embedding[word]
+        paper_embedding = paper_embedding / len(paper_words)
+        sementic_features[paperId] = paper_embedding.copy()
+
+    print(sementic_features['cFtStBA6'])
+    print(relation_features['cFtStBA6'])
     # TODO: title/key_words/venue_name embedding input form? -> sematic features
     # TODO: authors: name/org graph construct input form? -> relation features
     return sementic_features, relation_features
@@ -171,7 +212,7 @@ if __name__ == "__main__":
     # print(pubs_by_name)
 
     # ---------generateRawFeatrues test------------
-    # generateRawFeatrues()
+    generateRawFeatrues()
 
     # ---------generateCorpus test------------
-    generateCorpus()
+    # generateCorpus()

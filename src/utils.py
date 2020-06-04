@@ -28,6 +28,11 @@ def load_data(rfpath):
     with open(rfpath, 'rb') as rf:
         return pickle.load(rf)
 
+def load_stopWords(rfpath=cfg.STOP_WORDS_PATH):
+    with open(rfpath, 'r') as rf:
+        stop_words = rf.readlines()
+        print(stop_words)
+
 # -------------evaluate---------------
 
 
