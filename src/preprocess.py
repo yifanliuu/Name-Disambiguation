@@ -1,6 +1,68 @@
 from utils import load_json
 import config as cfg
+import string
 import re
+
+# ---------------generate all text using for train word embedding--------------
+"""
+using " organization，title， abstract， venue, keyworlds, year" as corpos to  train WORD EMBEDDING
+"""
+def generateCorpus():
+
+    corpusFile = open(cfg.ALL_TEXT_PATH, 'w')
+
+    r = r'[!“”"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~—～’]+'
+    del_str = string.punctuation
+    replace_str = ' '*len(del_str)
+    transTab = str.maketrans(del_str, replace_str)
+
+    pubs_raw = load_json(cfg.TRAIN_PUB_PATH)
+    for paperId, paperDetail in pubs_raw.items():
+        title = paperDetail['title']
+        abstract = paperDetail['abstract']
+        key_words = paperDetail.get("keywords")
+        keyword = ' '.join(key_words)
+        venue_name = paperDetail.get('venue')
+        year = paperDetail.get('year')
+        authors = paperDetail.get('authors')
+        orgset = set()
+        for author in authors:
+            orgs = author['org'].split(';')
+            for org in orgs:
+                if org not in orgset:
+                    orgset.add(org)
+        line = title + ' ' + abstract + ' ' + keyword + ' ' + venue_name + ' ' + str(year) + ' '
+        for org in orgset:
+            line = line + org + ' '
+        line = line.translate(transTab)
+        line = re.sub(r'\s{2,}', ' ', re.sub(r, ' ', line)).strip()
+        line = line + '\n'
+        corpusFile.write(line)
+    
+    val_pubs_raw = load_json(cfg.VAL_PUB_PATH)
+    for paperId, paperDetail in val_pubs_raw.items():
+        title = paperDetail['title']
+        abstract = paperDetail['abstract']
+        key_words = paperDetail.get("keywords")
+        keyword = ' '.join(key_words)
+        venue_name = paperDetail.get('venue')
+        year = paperDetail.get('year')
+        authors = paperDetail.get('authors')
+        orgset = set()
+        for author in authors:
+            orgs = author['org'].split(';')
+            for org in orgs:
+                if org not in orgset:
+                    orgset.add(org)
+        line = title + ' ' + abstract + ' ' + keyword + ' ' + venue_name + ' ' + str(year) + ' '
+        for org in orgset:
+            line = line + org + ' '
+        line = line.translate(transTab)
+        line = re.sub(r'\s{2,}', ' ', re.sub(r, ' ', line)).strip()
+        line = line + '\n'
+        corpusFile.write(line)
+
+    return
 
 # ---------------load authors.json to generate ground truth and all papaers--------------
 
@@ -79,15 +141,18 @@ def generateRawFeatrues(mode='train'):
 
     sementic_features = {}
     relation_features = {}
-    for i, paper in enumerate(pubs_raw):
-        title = paper['title']
+    for paperId, paperDetail in pubs_raw.items():
+        title = paperDetail['title']
         title = re.sub(r'\s{2,}', ' ', re.sub(r, ' ', title)).strip()
-        abstract = paper['abstract']
+        abstract = paperDetail['abstract']
         abstract = re.sub(r'\s{2,}', ' ', re.sub(r, ' ', abstract)).strip()
-        key_words = paper.get("keywords")
+        
+        key_words = paperDetail.get("keywords")
         keyword = ','.join(key_words)
-        venue_name = paper.get('venue')
-        authors = paper.get('authors')
+        
+        venue_name = paperDetail.get('venue')
+        authors = paperDetail.get('authors')
+
 
     # TODO: title/key_words/venue_name embedding input form? -> sematic features
     # TODO: authors: name/org graph construct input form? -> relation features
@@ -106,4 +171,7 @@ if __name__ == "__main__":
     # print(pubs_by_name)
 
     # ---------generateRawFeatrues test------------
-    generateRawFeatrues()
+    # generateRawFeatrues()
+
+    # ---------generateCorpus test------------
+    generateCorpus()
