@@ -6,9 +6,6 @@ from torch import nn
 
 # TODO: global embedding related models
 
-# TODO: local embedding related models
-
-
 # ------------GpraphConvolution Layer --------------
 
 
@@ -93,6 +90,18 @@ class Encoder(Module):
 
         return output
 
-
 # ----------------Decoder -------------------
 # Decoder: g2(Z) = sigmoid(Z'Z)
+
+
+class Decoder(nn.Module):
+    def __init__(self):
+        super(Decoder, self).__init__()
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, input):
+        '''
+        input: output of graph features
+            shape: [n_papers_in_candidate, n_out_features]
+        '''
+        return self.sigmoid(torch.matmul(torch.transpose(input), input))
