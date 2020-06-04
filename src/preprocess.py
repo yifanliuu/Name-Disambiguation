@@ -1,4 +1,4 @@
-from utils import load_json
+from utils import *
 from gensim.models.keyedvectors import KeyedVectors
 import config as cfg
 import numpy as np
@@ -136,6 +136,8 @@ def generateRawFeatrues(mode='train'):
     '''
     mode: 'train' or 'val' or 'test'
     '''
+    stopWords = load_stopWords()
+
     pubs_raw = None
     if mode == 'train':
         pubs_raw = load_json(cfg.TRAIN_PUB_PATH)
@@ -157,6 +159,7 @@ def generateRawFeatrues(mode='train'):
 
     sementic_features = {}
     relation_features = {}
+    count = 0
     for paperId, paperDetail in pubs_raw.items():
         title = paperDetail['title']
         abstract = paperDetail['abstract']
@@ -184,19 +187,38 @@ def generateRawFeatrues(mode='train'):
         # print(paper_words)
 
         paper_words = paper_words.lower().split(' ')
+        paper_embedding_words = []
 
-        for word in 
+    # delete STOP words and words too short
+        for word in paper_words:
+            if word in stopWords or len(word) < 3:
+                continue
+            else:
+                paper_embedding_words.append(word)
 
         paper_embedding = np.zeros(EMBEDDING_SIZE)
-        for i, word in enumerate(paper_words):
-            paper_embedding = paper_embedding + word_embedding[word]
-        paper_embedding = paper_embedding / len(paper_words)
-        sementic_features[paperId] = paper_embedding.copy()
+        l = len(paper_embedding_words)
 
-    print(sementic_features['cFtStBA6'])
-    print(relation_features['cFtStBA6'])
+        for i, word in enumerate(paper_embedding_words):
+            try:
+                paper_embedding = paper_embedding + word_embedding[word]
+            except:
+                l = l - 1
+
+        paper_embedding = paper_embedding / l
+        sementic_features[paperId] = paper_embedding.copy()
+        count += 1
+        if count % 1000 == 0:
+            print(str(count) + ' Done')
+
+    # print(sementic_features['cFtStBA6'])
+    # print(relation_features['cFtStBA6'])
     # TODO: title/key_words/venue_name embedding input form? -> sematic features
     # TODO: authors: name/org graph construct input form? -> relation features
+    
+    print('Wrting features to file......')
+    save_pub_features(sementic_features)
+
     return sementic_features, relation_features
 
 
@@ -212,7 +234,11 @@ if __name__ == "__main__":
     # print(pubs_by_name)
 
     # ---------generateRawFeatrues test------------
-    generateRawFeatrues()
+    # generateRawFeatrues()
 
     # ---------generateCorpus test------------
     # generateCorpus()
+
+    # ---------Anything else test------------
+    features = load_pub_features()
+    print(features['cFtStBA6'])

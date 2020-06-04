@@ -8,3 +8,5 @@ VAL_PUB_PATH = '../dataset/valid/sna_valid_pub.json'
 ALL_TEXT_PATH = '../dataset/all_text.txt'
 WORD_EMBEDDING_MODEL_PATH = '../model/word_embedding.model'
 STOP_WORDS_PATH = '../dataset/stop_words.txt'
+
+TRAIN_PUB_FEATURES_PATH = '../dataset/features/train_pub_features.txt'

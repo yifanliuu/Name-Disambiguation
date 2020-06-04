@@ -5,6 +5,7 @@ from os.path import join
 import pickle
 import os
 import re
+import numpy as np
 
 # -------------load and save data--------------
 
@@ -31,8 +32,42 @@ def load_data(rfpath):
 def load_stopWords(rfpath=cfg.STOP_WORDS_PATH):
     with open(rfpath, 'r') as rf:
         stop_words = rf.readlines()
-        print(stop_words)
+        for i, word in enumerate(stop_words):
+            stop_words[i] = word.strip()
+        return stop_words
 
+def load_pub_features(rfpath=cfg.TRAIN_PUB_FEATURES_PATH):
+    features = {}
+    with open(rfpath, 'r') as rf:
+        count = 0
+        raw_features = rf.readlines()
+        for line in raw_features:
+            line = line.strip().split(' ')
+            paperId = line[0]
+            paperFeature = line[1:]
+            for i in range(len(paperFeature)):
+                paperFeature[i] = float(paperFeature[i])
+            paperFeature = np.array(paperFeature)
+            features[paperId] = paperFeature
+            count += 1
+            if count % 1000 == 0:
+                print(str(count) + ' Done')
+    return features
+
+def save_pub_features(features, rfpath=cfg.TRAIN_PUB_FEATURES_PATH):
+    with open(rfpath, 'w') as rf:
+        count = 0
+        for key, value in features.items():
+            value = value.tolist()
+            rf.write(key + ' ')
+            for num in value[:-1]:
+                rf.write(str(num) + ' ')
+            rf.write(str(value[-1]) + '\n')
+            count += 1
+            if count % 1000 == 0:
+                print(str(count) + ' Done')
+
+        
 # -------------evaluate---------------
 
 
