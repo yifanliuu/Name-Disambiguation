@@ -233,6 +233,7 @@ def cal_simi_thread(param):
 
 
 def Cal_Simalarity_byAuthor(features_path, author_path, save_folder):
+    gtime_st = time.time()
     features = load_pub_features(features_path)
     paper_by_author_labeled = load_json(author_path)
     paper_by_author = dict()
@@ -260,7 +261,10 @@ def Cal_Simalarity_byAuthor(features_path, author_path, save_folder):
     # write similarity matrices to file
         np.save(save_folder + author + '.npy', np.array(res))
         time_end=time.time()
-        print("calculate " + author + " done, using " + str(time_end-time_start))
+        print("calculate " + author + " done, using time(s): " + str(time_end-time_start))
+    gtime_end = time.time()
+    print()
+    print("TOTAL USING TIME(s): " + str(gtime_st-gtime_end))
 
 def generate_wordembedding():
     logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
