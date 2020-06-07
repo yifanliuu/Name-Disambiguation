@@ -37,6 +37,7 @@ def load_stopWords(rfpath=cfg.STOP_WORDS_PATH):
         return stop_words
 
 def load_pub_features(rfpath=cfg.TRAIN_PUB_FEATURES_PATH):
+    print("Loading from " + rfpath + "......")
     features = {}
     with open(rfpath, 'r') as rf:
         count = 0
@@ -50,7 +51,7 @@ def load_pub_features(rfpath=cfg.TRAIN_PUB_FEATURES_PATH):
             paperFeature = np.array(paperFeature)
             features[paperId] = paperFeature
             count += 1
-            if count % 1000 == 0:
+            if count % 10000 == 0:
                 print(str(count) + ' Done')
     return features
 
@@ -64,7 +65,7 @@ def save_pub_features(features, rfpath=cfg.TRAIN_PUB_FEATURES_PATH):
                 rf.write(str(num) + ' ')
             rf.write(str(value[-1]) + '\n')
             count += 1
-            if count % 1000 == 0:
+            if count % 10000 == 0:
                 print(str(count) + ' Done')
 
         
@@ -117,6 +118,9 @@ def get_author_and_org_features(item, order=None):
         names = format_name(names)
     # TODO:
 
+
+def cosangle(a, b):
+    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
 
 if __name__ == "__main__":
     pass
