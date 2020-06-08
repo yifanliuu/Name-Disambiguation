@@ -6,6 +6,7 @@ import pickle
 import os
 import re
 import numpy as np
+import torch
 
 # -------------load and save data--------------
 
@@ -29,12 +30,14 @@ def load_data(rfpath):
     with open(rfpath, 'rb') as rf:
         return pickle.load(rf)
 
+
 def load_stopWords(rfpath=cfg.STOP_WORDS_PATH):
     with open(rfpath, 'r') as rf:
         stop_words = rf.readlines()
         for i, word in enumerate(stop_words):
             stop_words[i] = word.strip()
         return stop_words
+
 
 def load_pub_features(rfpath=cfg.TRAIN_PUB_FEATURES_PATH):
     print("Loading from " + rfpath + "......")
@@ -55,6 +58,7 @@ def load_pub_features(rfpath=cfg.TRAIN_PUB_FEATURES_PATH):
                 print(str(count) + ' Done')
     return features
 
+
 def save_pub_features(features, rfpath=cfg.TRAIN_PUB_FEATURES_PATH):
     with open(rfpath, 'w') as rf:
         count = 0
@@ -68,7 +72,7 @@ def save_pub_features(features, rfpath=cfg.TRAIN_PUB_FEATURES_PATH):
             if count % 10000 == 0:
                 print(str(count) + ' Done')
 
-        
+
 # -------------evaluate---------------
 
 
@@ -121,6 +125,39 @@ def get_author_and_org_features(item, order=None):
 
 def cosangle(a, b):
     return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
+
+
+# -------------- graph preprocess ---------------
+
+def preprocess_graph(adj):
+    adj = sp.coo_matrix(adj)
+    adj_ = adj + sp.eye(adj.shape[0])
+    rowsum = np.array(adj_.sum(1))
+    degree_mat_inv_sqrt = sp.diags(np.power(rowsum, -0.5).flatten())
+    adj_normalized = adj_.dot(degree_mat_inv_sqrt).transpose().dot(
+        degree_mat_inv_sqrt).tocoo()
+    # return sparse_to_tuple(adj_normalized)
+    return sparse_mx_to_torch_sparse_tensor(adj_normalized)
+
+
+def generate_embeded_features(raw_feat):
+    pass
+
+
+def generate_graph():
+    pass
+
+
+def sparse_mx_to_torch_sparse_tensor(sparse_mx):
+    """Convert a scipy sparse matrix to a torch sparse tensor."""
+    sparse_mx = sparse_mx.tocoo().astype(np.float32)
+    indices = torch.from_numpy(
+        np.vstack((sparse_mx.row, sparse_mx.col)).astype(np.int64))
+    values = torch.from_numpy(sparse_mx.data)
+    shape = torch.Size(sparse_mx.shape)
+    return torch.FloatTensor(indices, values, shape)
+    # TODO: 生成torch向量
+
 
 if __name__ == "__main__":
     pass
