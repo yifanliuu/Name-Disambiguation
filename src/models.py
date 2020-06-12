@@ -15,11 +15,12 @@ class Word2Vec():
 
     def __init__(self):
         return
-    
+
     def train(self):
         sentences = word2vec.Text8Corpus(cfg.ALL_TEXT_PATH)
-        self.model = word2vec.Word2Vec(sentences, size=100,negative =5, min_count=1, window=5)
-    
+        self.model = word2vec.Word2Vec(
+            sentences, size=100, negative=5, min_count=1, window=5)
+
     def save(self):
         self.model.save(cfg.WORD_EMBEDDING_MODEL_PATH)
 
@@ -96,6 +97,7 @@ class Encoder(Module):
         self.relu = nn.ReLU()
         self.dropout = nn.Dropout(p=dropout_rate)
         self.gcn2 = GraphConvolution(n_hidden_features, n_output_features)
+        self.gcn3 = GraphConvolution(n_hidden_features, n_output_features)
 
     def forward(self, Y, normed_A):
         '''
@@ -107,9 +109,9 @@ class Encoder(Module):
         gcn1_output = self.gcn1.forward(Y, normed_A)
         relu_output = self.relu(gcn1_output)
         dropout_output = self.dropout(relu_output)
-        output = self.gcn2.forward(dropout_output, normed_A)
-
-        return output
+        mu = self.gcn2.forward(dropout_output, normed_A)
+        logvar = self.gcn3.forward(dropout_output, normed_A)
+        return mu, logvar
 
 # ----------------Decoder -------------------
 # Decoder: g2(Z) = sigmoid(Z'Z)
@@ -124,6 +126,31 @@ class Decoder(nn.Module):
         '''
         input: output of graph features
             shape: [n_papers_in_candidate, n_out_features]
+        return: shape: [n_papers_in_candidate, n_papers_in_candidate]
         '''
-        return self.sigmoid(torch.matmul(torch.transpose(input), input))
+        return self.sigmoid(torch.matmul(input, torch.transpose(input)))
 
+
+class AutoEncoder(nn.Module):
+    def __init__(self):
+        super(AutoEncoder, self).__init__()
+        self.encoder = Encoder(
+            n_input_features=100,
+            n_hidden_features=128,
+            n_output_features=100,
+            dropout_rate=0.5
+        )
+        self.decoder = Decoder()
+
+    def sample(self, mu, logvar):
+        if self.training:
+            std = torch.exp(logvar)
+            eps = torch.randn_like(std)
+            return eps.mul(std).add_(mu)
+        else:
+            return mu
+
+    def forward(self, Y, normed_A):
+        mu, logvar = self.encoder(Y, normed_A)
+        z = self.sample(mu, logvar)
+        return self.decoder(z), mu, logvar
