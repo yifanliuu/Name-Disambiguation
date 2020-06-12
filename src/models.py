@@ -6,7 +6,7 @@ from torch import nn
 from gensim.models import word2vec
 from gensim.models.keyedvectors import KeyedVectors
 import config as cfg
-
+from sklearn.cluster import DBSCAN
 
 # TODO: global embedding related models
 
@@ -126,3 +126,4 @@ class Decoder(nn.Module):
             shape: [n_papers_in_candidate, n_out_features]
         '''
         return self.sigmoid(torch.matmul(torch.transpose(input), input))
+
