@@ -5,6 +5,7 @@ from os.path import join
 import pickle
 import os
 import re
+import scipy.sparse as sp
 import numpy as np
 import torch
 
@@ -16,8 +17,8 @@ def load_json(rfpath):
         return json.load(rf)
 
 
-def dump_json(obj, wfpath, wfname, indent=None):
-    with codecs.open(join(wfpath, wfname), 'w', encoding='utf-8') as wf:
+def dump_json(obj, wfname, indent=None):
+    with codecs.open(wfname, 'w', encoding='utf-8') as wf:
         json.dump(obj, wf, ensure_ascii=False, indent=indent)
 
 
@@ -123,14 +124,15 @@ def get_author_and_org_features(item, order=None):
     # TODO:
 
 
-def cosangle(a, b):
-    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
-
-
 # -------------- graph preprocess ---------------
 
-def preprocess_graph(adj):
-    adj = sp.coo_matrix(adj)
+def preprocess_graph(coo_node_list, n_node):
+    coo_numpy = np.array(coo_node_list)
+    shape = (n_node, n_node)
+    rows = coo_numpy[:, 0]
+    cols = coo_numpy[:, 1]
+    data = coo_numpy[:, 2]
+    adj = sp.coo_matrix(data, (rows, cols), shape)
     adj_ = adj + sp.eye(adj.shape[0])
     rowsum = np.array(adj_.sum(1))
     degree_mat_inv_sqrt = sp.diags(np.power(rowsum, -0.5).flatten())
@@ -140,12 +142,16 @@ def preprocess_graph(adj):
     return sparse_mx_to_torch_sparse_tensor(adj_normalized)
 
 
-def generate_embeded_features(raw_feat):
-    pass
-
-
-def generate_graph():
-    pass
+def coAuthorOrg_num(names1, names2):
+    name_count = 0
+    org_count = 0
+    for name1 in names1:
+        for name2 in names2:
+            if name1['name'] == name2['name']:
+                name_count += 1
+            if name1['org'] == name2['org']:
+                org_count += 1
+    return name_count, org_count
 
 
 def sparse_mx_to_torch_sparse_tensor(sparse_mx):
@@ -155,8 +161,20 @@ def sparse_mx_to_torch_sparse_tensor(sparse_mx):
         np.vstack((sparse_mx.row, sparse_mx.col)).astype(np.int64))
     values = torch.from_numpy(sparse_mx.data)
     shape = torch.Size(sparse_mx.shape)
-    return torch.FloatTensor(indices, values, shape)
+    return torch.sparse.FloatTensor(indices, values, shape)
     # TODO: 生成torch向量
+
+
+# ---------------- cos angle ------------------
+
+def cosangle(a, b):
+    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
+
+# ---------------- generateRawResult ----------
+
+
+def generateRawResult():
+    pass
 
 
 if __name__ == "__main__":

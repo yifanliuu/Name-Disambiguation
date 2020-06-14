@@ -4,6 +4,7 @@ import torch.nn.functional as F
 import time
 import scipy.sparse as sp
 from utils import *
+from preprocess import *
 
 
 class AutoEncoderTrainer():
@@ -30,7 +31,7 @@ class AutoEncoderTrainer():
             1 + 2 * logvar - mu.pow(2) - logvar.exp().pow(2), 1))
         return cost + KLD
 
-    def train(self, Y, normed_A):
+    def train(self, Y, normed_A, n_nodes):
 
         for i in range(1, self.iterations + 1):
             pos_weight = float(
@@ -57,20 +58,20 @@ class AutoEncoderTrainer():
         self.iterations += i
 
 
-
 if __name__ == "__main__":
     word2vec = Word2Vec()
     # word2vec.train()
     # word2vec.save()
     # how to get Y
-    adj, features = load_data(args.dataset_str)
-    raw_feat = word2vec.load()
-    feat_dict = generate_embeded_features(raw_feat)
-
-    adj_dict = generate_graph()
+    raw_feat = load_pub_features(rfpath=cfg.VAL_PUB_FEATURES_PATH)
+    print(raw_feat)
+    # feat_dict = generate_embeded_features(raw_feat)
+    '''
+    adj_dict = 
 
     adj_norm = preprocess_graph(adj)
     adj_label = adj_train + sp.eye(adj_train.shape[0])
     adj_label = torch.FloatTensor(adj_label.toarray())
 
     trainer = AutoEncoderTrainer()
+    '''

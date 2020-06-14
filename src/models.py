@@ -7,9 +7,8 @@ from gensim.models import word2vec
 from gensim.models.keyedvectors import KeyedVectors
 import config as cfg
 
-# TODO: global embedding related models
-
 # ------------ Word2Vec Class --------------
+
 
 class Word2Vec():
 

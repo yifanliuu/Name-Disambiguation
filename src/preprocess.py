@@ -20,6 +20,8 @@ transTab = str.maketrans(del_str, replace_str)
 """
 using " organization，title， abstract， venue, keyworlds, year" as corpos to  train WORD EMBEDDING
 """
+
+
 def generateCorpus():
 
     corpusFile = open(cfg.ALL_TEXT_PATH, 'w')
@@ -44,14 +46,15 @@ def generateCorpus():
             for org in orgs:
                 if org not in orgset:
                     orgset.add(org)
-        line = title + ' ' + abstract + ' ' + keyword + ' ' + venue_name + ' ' + str(year) + ' '
+        line = title + ' ' + abstract + ' ' + keyword + \
+            ' ' + venue_name + ' ' + str(year) + ' '
         for org in orgset:
             line = line + org + ' '
         line = line.translate(transTab)
         line = re.sub(r'\s{2,}', ' ', re.sub(r, ' ', line)).strip()
         line = line + '\n'
         corpusFile.write(line.lower())
-    
+
     val_pubs_raw = load_json(cfg.VAL_PUB_PATH)
     for paperId, paperDetail in val_pubs_raw.items():
         title = paperDetail['title']
@@ -67,7 +70,8 @@ def generateCorpus():
             for org in orgs:
                 if org not in orgset:
                     orgset.add(org)
-        line = title + ' ' + abstract + ' ' + keyword + ' ' + venue_name + ' ' + str(year) + ' '
+        line = title + ' ' + abstract + ' ' + keyword + \
+            ' ' + venue_name + ' ' + str(year) + ' '
         for org in orgset:
             line = line + org + ' '
         line = line.translate(transTab)
@@ -78,6 +82,7 @@ def generateCorpus():
     return
 
 # ---------------load authors.json to generate ground truth and all papaers--------------
+
 
 def generateCandidateSets(mode='train'):
     '''
@@ -128,8 +133,6 @@ def generateCandidateSetsTest():
 
         for pub in authors[name]:
             pubs.append(pub)
-
-        print(n, name, len(pubs))
         pubs_by_name[name] = pubs
 
     return pubs_by_name
@@ -149,7 +152,7 @@ def generateRawFeatrues(mode='train'):
     elif mode == 'val':
         pubs_raw = load_json(cfg.VAL_PUB_PATH)
     elif mode == 'test':
-        pass
+        exit(0)
     else:
         raise Exception("mode should be 'train' or 'val' or 'test'\n")
 
@@ -161,7 +164,6 @@ def generateRawFeatrues(mode='train'):
     # print(word_embedding['optimization'])
     # print(type(word_embedding['optimization']))
     # print(word_embedding['optimization'].size)
-
 
     sementic_features = {}
 
@@ -176,20 +178,22 @@ def generateRawFeatrues(mode='train'):
         authors = paperDetail.get('authors')
 
         # relation_features[paperId] = authors
-        
+
         # NOTE: A paper have many authors with some organizations, but we calculate them several times, may be will be modified here.
         orglist = ''
- 
+
         for author in authors:
             orgs = author['org'].split(';')
             for org in orgs:
                 if org not in orglist:
                     orglist = orglist + org
 
-        paper_words = title + ' ' + abstract + ' ' + keyword + ' ' + venue_name + ' ' + str(year) + ' ' + orglist
+        paper_words = title + ' ' + abstract + ' ' + keyword + \
+            ' ' + venue_name + ' ' + str(year) + ' ' + orglist
         # print(paper_words)
         paper_words = paper_words.translate(transTab)
-        paper_words = re.sub(r'\s{2,}', ' ', re.sub(r, ' ', paper_words)).strip()
+        paper_words = re.sub(r'\s{2,}', ' ', re.sub(
+            r, ' ', paper_words)).strip()
         # print(paper_words)
 
         paper_words = paper_words.lower().split(' ')
@@ -219,11 +223,16 @@ def generateRawFeatrues(mode='train'):
 
     # print(sementic_features['cFtStBA6'])
     # print(relation_features['cFtStBA6'])
-    # TODO: title/key_words/venue_name embedding input form? -> sematic features
-    # TODO: authors: name/org graph construct input form? -> relation features
-    
+
     print('Wrting features to file......')
-    save_pub_features(sementic_features)
+    if mode == 'train':
+        save_pub_features(sementic_features)
+    elif mode == 'val':
+        save_pub_features(sementic_features, rfpath=cfg.VAL_PUB_FEATURES_PATH)
+    elif mode == 'test':
+        exit(0)
+    else:
+        raise Exception("mode should be 'train' or 'val' or 'test'\n")
 
     return sementic_features
 
@@ -241,13 +250,13 @@ def Cal_Simalarity_byAuthor(features_path, author_path, save_folder):
         paper_by_author[author] = []
         for label, papers in labeled_paper.items():
             paper_by_author[author] += papers
-    
+
     simi_matrix = []
     p = multiprocessing.Pool(4)
     # print(len(paper_by_author))
     for author, papers in paper_by_author.items():
         # print(len(papers))
-        time_start=time.time()
+        time_start = time.time()
         l = len(papers)
         size = l * l
         simi_matrix = np.zeros(size)
@@ -260,43 +269,94 @@ def Cal_Simalarity_byAuthor(features_path, author_path, save_folder):
         res = p.map(cal_simi_thread, jobs_param)
     # write similarity matrices to file
         np.save(save_folder + author + '.npy', np.array(res))
-        time_end=time.time()
-        print("calculate " + author + " done, using time(s): " + str(time_end-time_start))
+        time_end = time.time()
+        print("calculate " + author + " done, using time(s): " +
+              str(time_end-time_start))
     gtime_end = time.time()
     print()
     print("TOTAL USING TIME(s): " + str(gtime_st-gtime_end))
 
+
 def generate_wordembedding():
-    logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
+    logging.basicConfig(
+        format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
     word_embedding = Word2Vec()
     word_embedding.train()
     word_embedding.save()
 
+# ------------------- graph generation --------------------
+
+
+def generateGraph(mode='train'):
+    """
+    generate graph use co-authors and organization
+    """
+    pubs_raw = None
+    name_to_pubs = None
+    if mode == 'train':
+        pubs_raw = load_json(cfg.TRAIN_PUB_PATH)
+        _, name_to_pubs = generateCandidateSets(mode=mode)
+    elif mode == 'val':
+        pubs_raw = load_json(cfg.VAL_PUB_PATH)
+        name_to_pubs = generateCandidateSetsTest()
+    elif mode == 'test':
+        exit(0)
+    else:
+        raise Exception("mode should be 'train' or 'val' or 'test'\n")
+
+    graph = {}
+    for i, name in enumerate(name_to_pubs):
+        print(i, name)
+        paper_list = name_to_pubs[name]
+        coo_node_list = []
+
+        for j, pid1 in enumerate(paper_list):
+            for k, pid2 in enumerate(paper_list):
+                if(j >= k):
+                    continue
+                name_count, org_count = coAuthorOrg_num(
+                    pubs_raw[pid1]['authors'],
+                    pubs_raw[pid2]['authors']
+                )
+                count = name_count + org_count
+                if count != 0:
+                    coo_node_list.append([j, k, count])
+        graph[name] = coo_node_list
+        # generate content
+        # wf_content = open(join(graph_dir, '{}_pubs_content.txt'.format(name)), 'w')
+    if mode == 'train':
+        dump_json(graph, cfg.TRAIN_GRAPH_PATH)
+    elif mode == 'val':
+        dump_json(graph, cfg.VAL_GRAPH_PATH)
+
+    return graph
+
+
 if __name__ == "__main__":
     pass
+    # ---------generateGraph test -------------------
+    # generateGraph()
     # ---------generateCandidateSets test------------
     # labels_by_name, pubs_by_name = generateCandidateSets()
     # print(labels_by_name)
-    # print(pubs_by_name)
+    # print(type(pubs_by_name))
 
     # ---------generateCandidateSets test------------
     # pubs_by_name = generateCandidateSetsTest()
     # print(pubs_by_name)
 
     # ---------generateRawFeatrues test------------
-    # generateRawFeatrues()
+    # generateRawFeatrues(mode='val')
 
     # ---------generateCorpus test------------
     # generateCorpus()
 
     # ---------Cal_Simalarity_byAuthor test------------
-    Cal_Simalarity_byAuthor(cfg.TRAIN_PUB_FEATURES_PATH, cfg.TRAIN_AUTHOR_PATH, cfg.SIMI_SENMATIC_FOLDER)
+    # Cal_Simalarity_byAuthor(cfg.TRAIN_PUB_FEATURES_PATH, cfg.TRAIN_AUTHOR_PATH, cfg.SIMI_SENMATIC_FOLDER)
 
     # ---------generate_wordembedding test------------
     # generate_wordembedding()
 
     # ---------Anything else test------------
-    # features = load_pub_features()
-    # print(features['cFtStBA6'])
-
-
+    features = load_pub_features(rfpath=cfg.VAL_PUB_FEATURES_PATH)
+    print(features['srDOamxh'])
