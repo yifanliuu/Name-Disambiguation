@@ -3,6 +3,7 @@
 # train files
 TRAIN_AUTHOR_PATH = '../dataset/train_author.json'
 TRAIN_PUB_PATH = '../dataset/train_pub.json'
+TRAIN_RESULT_PATH = '../dataset/train_res.json'
 
 # valid files
 VAL_AUTHOR_PATH = '../dataset/valid/sna_valid_author_raw.json'

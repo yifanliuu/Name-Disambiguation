@@ -158,6 +158,10 @@ def sparse_mx_to_torch_sparse_tensor(sparse_mx):
     return torch.FloatTensor(indices, values, shape)
     # TODO: 生成torch向量
 
+def normalization(data):
+    _range = np.max(data) - np.min(data)
+    return (data - np.min(data)) / _range
+
 
 if __name__ == "__main__":
     pass
