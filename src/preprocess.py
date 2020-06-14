@@ -347,7 +347,7 @@ def generateGraph(mode='train'):
                 )
                 count = name_count + org_count
                 if count != 0:
-                    coo_node_list.append([j, k, count])
+                    coo_node_list.append([pid1, pid2, count])
         graph[name] = coo_node_list
         # generate content
         # wf_content = open(join(graph_dir, '{}_pubs_content.txt'.format(name)), 'w')
@@ -355,14 +355,13 @@ def generateGraph(mode='train'):
         dump_json(graph, cfg.TRAIN_GRAPH_PATH)
     elif mode == 'val':
         dump_json(graph, cfg.VAL_GRAPH_PATH)
-
     return graph
 
 
 if __name__ == "__main__":
     pass
     # ---------generateGraph test -------------------
-    # generateGraph()
+    # generateGraph(mode='val')
     # ---------generateCandidateSets test------------
     # labels_by_name, pubs_by_name = generateCandidateSets()
     # print(labels_by_name)

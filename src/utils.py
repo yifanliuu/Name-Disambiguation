@@ -22,8 +22,8 @@ def dump_json(obj, wfname, indent=None):
         json.dump(obj, wf, ensure_ascii=False, indent=indent)
 
 
-def dump_data(obj, wfpath, wfname):
-    with open(os.path.join(wfpath, wfname), 'wb') as wf:
+def dump_data(obj, wfname):
+    with open(wfname, 'wb') as wf:
         pickle.dump(obj, wf)
 
 
@@ -126,7 +126,7 @@ def preprocess_graph(coo_node_list, n_node):
     adj_normalized = adj_.dot(degree_mat_inv_sqrt).transpose().dot(
         degree_mat_inv_sqrt).tocoo()
     # return sparse_to_tuple(adj_normalized)
-    return sparse_mx_to_torch_sparse_tensor(adj_normalized)
+    return sparse_mx_to_torch_sparse_tensor(adj_normalized), adj
 
 
 def coAuthorOrg_num(names1, names2):
@@ -149,7 +149,6 @@ def sparse_mx_to_torch_sparse_tensor(sparse_mx):
     values = torch.from_numpy(sparse_mx.data)
     shape = torch.Size(sparse_mx.shape)
     return torch.sparse.FloatTensor(indices, values, shape)
-    # TODO: 生成torch向量
 
 
 def normalization(data):
@@ -158,6 +157,7 @@ def normalization(data):
 
 
 # ---------------- cos angle ------------------
+
 
 def cosangle(a, b):
     return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
@@ -168,6 +168,9 @@ def cosangle(a, b):
 def generateRawResult():
     pass
 
+# ------------- mapping idx to paper id/ paper id to idx ----------
+# TODO:
+
 
 if __name__ == "__main__":
     pass
@@ -176,3 +179,12 @@ if __name__ == "__main__":
     # pubs_val = load_json(cfg.VAL_PUB_PATH)
     # print(pubs_train)
     # print(pubs_val)
+
+    # -------- test dump_json ----------
+    '''
+    a = np.ones([2, 2])
+    b = {}
+    b['yes'] = a
+    dump_data(b, wfname='../test.txt')
+    '''
+    print(load_data('../test.txt'))
