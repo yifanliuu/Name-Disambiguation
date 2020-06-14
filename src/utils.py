@@ -40,7 +40,7 @@ def load_stopWords(rfpath=cfg.STOP_WORDS_PATH):
         return stop_words
 
 
-def load_pub_features(rfpath=cfg.TRAIN_PUB_FEATURES_PATH):
+def load_pub_features(rfpath):
     print("Loading from " + rfpath + "......")
     features = {}
     with open(rfpath, 'r') as rf:
@@ -60,7 +60,7 @@ def load_pub_features(rfpath=cfg.TRAIN_PUB_FEATURES_PATH):
     return features
 
 
-def save_pub_features(features, rfpath=cfg.TRAIN_PUB_FEATURES_PATH):
+def save_pub_features(features, rfpath):
     with open(rfpath, 'w') as rf:
         count = 0
         for key, value in features.items():
@@ -112,20 +112,7 @@ def format_name(names):
     return x
 
 
-def get_author_and_org_features(item, order=None):
-    author_features = []
-    for i, author in enumerate(item["authors"]):
-        if order is not None and i != order:
-            continue
-        name_features = []
-        org_features = []
-        names = author.get("org", "")
-        names = format_name(names)
-    # TODO:
-
-
 # -------------- graph preprocess ---------------
-
 def preprocess_graph(coo_node_list, n_node):
     coo_numpy = np.array(coo_node_list)
     shape = (n_node, n_node)
@@ -163,6 +150,11 @@ def sparse_mx_to_torch_sparse_tensor(sparse_mx):
     shape = torch.Size(sparse_mx.shape)
     return torch.sparse.FloatTensor(indices, values, shape)
     # TODO: 生成torch向量
+
+
+def normalization(data):
+    _range = np.max(data) - np.min(data)
+    return (data - np.min(data)) / _range
 
 
 # ---------------- cos angle ------------------
