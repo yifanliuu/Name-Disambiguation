@@ -6,11 +6,11 @@ from torch import nn
 from gensim.models import word2vec
 from gensim.models.keyedvectors import KeyedVectors
 import config as cfg
-from sklearn.cluster import DBSCAN
 
 # TODO: global embedding related models
 
 # ------------ Word2Vec Class --------------
+
 class Word2Vec():
 
     def __init__(self):

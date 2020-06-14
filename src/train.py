@@ -57,6 +57,7 @@ class AutoEncoderTrainer():
         self.iterations += i
 
 
+
 if __name__ == "__main__":
     word2vec = Word2Vec()
     # word2vec.train()
