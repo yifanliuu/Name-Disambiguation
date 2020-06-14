@@ -223,7 +223,11 @@ def generateRawFeatrues(mode='train'):
     # TODO: authors: name/org graph construct input form? -> relation features
     
     print('Wrting features to file......')
-    save_pub_features(sementic_features)
+    if mode=="train":
+        rfpath = cfg.TRAIN_PUB_FEATURES_PATH
+    elif mode == "val":
+        rfpath = cfg.VAL_PUB_FEATURES_PATH
+    save_pub_features(sementic_features, rfpath)
 
     return sementic_features
 
@@ -232,7 +236,7 @@ def cal_simi_thread(param):
     return cosangle(param[0], param[1])
 
 
-def Cal_Simalarity_byAuthor(features_path, author_path, save_folder):
+def Cal_Simalarity_byAuthor_labeled(features_path, author_path, save_folder):
     gtime_st = time.time()
     features = load_pub_features(features_path)
     paper_by_author_labeled = load_json(author_path)
@@ -241,6 +245,35 @@ def Cal_Simalarity_byAuthor(features_path, author_path, save_folder):
         paper_by_author[author] = []
         for label, papers in labeled_paper.items():
             paper_by_author[author] += papers
+    
+    simi_matrix = []
+    p = multiprocessing.Pool(4)
+    # print(len(paper_by_author))
+    for author, papers in paper_by_author.items():
+        # print(len(papers))
+        time_start=time.time()
+        l = len(papers)
+        size = l * l
+        simi_matrix = np.zeros(size)
+        jobs_param = []
+        for index in range(size):
+            i = int(index / l)
+            j = index % l
+            jobs_param.append([features[papers[i]], features[papers[j]]])
+        # print("start calculate")
+        res = p.map(cal_simi_thread, jobs_param)
+    # write similarity matrices to file
+        np.save(save_folder + author + '.npy', np.array(res))
+        time_end=time.time()
+        print("calculate " + author + " done, using time(s): " + str(time_end-time_start))
+    gtime_end = time.time()
+    print()
+    print("TOTAL USING TIME(s): " + str(gtime_st-gtime_end))
+
+def Cal_Simalarity_byAuthor_unlabeled(features_path, author_path, save_folder):
+    gtime_st = time.time()
+    features = load_pub_features(features_path)
+    paper_by_author = load_json(author_path)
     
     simi_matrix = []
     p = multiprocessing.Pool(4)
@@ -284,13 +317,14 @@ if __name__ == "__main__":
     # print(pubs_by_name)
 
     # ---------generateRawFeatrues test------------
-    # generateRawFeatrues()
+    # generateRawFeatrues('val')
 
     # ---------generateCorpus test------------
     # generateCorpus()
 
     # ---------Cal_Simalarity_byAuthor test------------
-    Cal_Simalarity_byAuthor(cfg.TRAIN_PUB_FEATURES_PATH, cfg.TRAIN_AUTHOR_PATH, cfg.SIMI_SENMATIC_FOLDER)
+    # Cal_Simalarity_byAuthor_labeled(cfg.TRAIN_PUB_FEATURES_PATH, cfg.TRAIN_AUTHOR_PATH, cfg.SIMI_SENMATIC_FOLDER)
+    Cal_Simalarity_byAuthor_unlabeled(cfg.VAL_PUB_FEATURES_PATH, cfg.VAL_AUTHOR_PATH, cfg.VAL_SIMI_SENMATIC_FOLDER)
 
     # ---------generate_wordembedding test------------
     # generate_wordembedding()

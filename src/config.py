@@ -8,6 +8,7 @@ TRAIN_RESULT_PATH = '../dataset/train_res.json'
 # valid files
 VAL_AUTHOR_PATH = '../dataset/valid/sna_valid_author_raw.json'
 VAL_PUB_PATH = '../dataset/valid/sna_valid_pub.json'
+VAL_RESULT_PATH = '../dataset/valid/valid_res.json'
 
 #test_files
 TEST_AUTHOR_PATH = '../dataset/test/sna_test_author_raw.json'
@@ -20,6 +21,9 @@ STOP_WORDS_PATH = '../dataset/stop_words.txt'
 
 # feature files
 TRAIN_PUB_FEATURES_PATH = '../dataset/features/train_pub_features.txt'
+VAL_PUB_FEATURES_PATH = '../dataset/features/val_pub_features.txt'
+
 
 # similary of semantic features by Author
-SIMI_SENMATIC_FOLDER = '../dataset/similarity/sematic/'
+TRAIN_SIMI_SENMATIC_FOLDER = '../dataset/similarity/sematic/train/'
+VAL_SIMI_SENMATIC_FOLDER = '../dataset/similarity/sematic/val/'

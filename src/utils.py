@@ -16,8 +16,8 @@ def load_json(rfpath):
         return json.load(rf)
 
 
-def dump_json(obj, wfpath, wfname, indent=None):
-    with codecs.open(join(wfpath, wfname), 'w', encoding='utf-8') as wf:
+def dump_json(obj, wfpath, indent=None):
+    with codecs.open(wfpath, 'w', encoding='utf-8') as wf:
         json.dump(obj, wf, ensure_ascii=False, indent=indent)
 
 
@@ -39,7 +39,7 @@ def load_stopWords(rfpath=cfg.STOP_WORDS_PATH):
         return stop_words
 
 
-def load_pub_features(rfpath=cfg.TRAIN_PUB_FEATURES_PATH):
+def load_pub_features(rfpath):
     print("Loading from " + rfpath + "......")
     features = {}
     with open(rfpath, 'r') as rf:
@@ -59,7 +59,7 @@ def load_pub_features(rfpath=cfg.TRAIN_PUB_FEATURES_PATH):
     return features
 
 
-def save_pub_features(features, rfpath=cfg.TRAIN_PUB_FEATURES_PATH):
+def save_pub_features(features, rfpath):
     with open(rfpath, 'w') as rf:
         count = 0
         for key, value in features.items():
