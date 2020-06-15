@@ -9,7 +9,7 @@ from preprocess import *
 
 
 class AutoEncoderTrainer():
-    def __init__(self, USE_CUDA=True, max_iter=1000, lr=1e-3):
+    def __init__(self, USE_CUDA=True, max_iter=200, lr=1e-3):
         self.model = AutoEncoder()
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
         self.iterations = max_iter

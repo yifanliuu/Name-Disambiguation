@@ -256,8 +256,7 @@ def Cal_Simalarity_byAuthor_labeled(features_path, author_path, save_folder):
         # print(len(papers))
         time_start = time.time()
         l = len(papers)
-        
-        
+
         x = []
         for paper in papers:
             x.append(features[paper])
@@ -274,7 +273,7 @@ def Cal_Simalarity_byAuthor_labeled(features_path, author_path, save_folder):
         # # print("start calculate")
         # res = p.map(cal_simi_thread, jobs_param)
     # write similarity matrices to file
-        
+
         np.save(save_folder + author + '.npy', np.array(res))
         time_end = time.time()
         print("calculate " + author + " done, using time(s): " +
@@ -296,7 +295,7 @@ def Cal_Simalarity_byAuthor_unlabeled(features_path, author_path, save_folder):
         # print(len(papers))
         time_start = time.time()
         l = len(papers)
-        
+
         x = []
         for paper in papers:
             x.append(features[paper])
@@ -313,6 +312,7 @@ def Cal_Simalarity_byAuthor_unlabeled(features_path, author_path, save_folder):
         # res = p.map(cal_simi_thread, jobs_param)
     # write similarity matrices to file
         np.save(save_folder + author + '.npy', np.array(res))
+        print(res.shape)
         time_end = time.time()
         print("calculate " + author + " done, using time(s): " +
               str(time_end-time_start))
@@ -374,6 +374,50 @@ def generateGraph(mode='train'):
     return graph
 
 
+def generateRelationFeatures(mode='train'):
+    """
+    generate graph use co-authors and organization
+    """
+    pubs_raw = None
+    name_to_pubs = None
+    if mode == 'train':
+        pubs_raw = load_json(cfg.TRAIN_PUB_PATH)
+        _, name_to_pubs = generateCandidateSets(mode=mode)
+    elif mode == 'val':
+        pubs_raw = load_json(cfg.VAL_PUB_PATH)
+        name_to_pubs = generateCandidateSetsTest()
+    elif mode == 'test':
+        exit(0)
+    else:
+        raise Exception("mode should be 'train' or 'val' or 'test'\n")
+
+    for i, name in enumerate(name_to_pubs):
+        print(i, name)
+        paper_list = name_to_pubs[name]
+        relation_matrix = np.zeros([len(paper_list), len(paper_list)])
+
+        for j, pid1 in enumerate(paper_list):
+            for k, pid2 in enumerate(paper_list):
+                if(j >= k):
+                    continue
+                name_count, org_count = coAuthorOrg_num(
+                    pubs_raw[pid1]['authors'],
+                    pubs_raw[pid2]['authors']
+                )
+                count = name_count + org_count
+                if count != 0:
+                    relation_matrix[j, k] = count
+                    relation_matrix[k, j] = count
+
+        np.save(cfg.VAL_SIMI_RELATION_FOLDER + name +
+                '.npy', np.array(relation_matrix))
+        print(relation_matrix.shape)
+        print("calculate " + name + " done")
+        # generate content
+        # wf_content = open(join(graph_dir, '{}_pubs_content.txt'.format(name)), 'w')
+    return
+
+
 if __name__ == "__main__":
     pass
     # ---------generateGraph test -------------------
@@ -405,3 +449,6 @@ if __name__ == "__main__":
     # ---------Anything else test------------
     # features = load_pub_features(rfpath=cfg.VAL_PUB_FEATURES_PATH)
     # print(features['srDOamxh'])
+
+    # ---------------- generateRelationFeatures ----------
+    generateRelationFeatures(mode='val')

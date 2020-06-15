@@ -30,6 +30,10 @@ VAL_RELATION_FEATURES_PATH = '../dataset/features/val_relation_features.txt'
 TRAIN_SIMI_SENMATIC_FOLDER = '../dataset/similarity/sematic/train/'
 VAL_SIMI_SENMATIC_FOLDER = '../dataset/similarity/sematic/val/'
 
+# similary of relation features by Author
+TRAIN_SIMI_RELATION_FOLDER = '../dataset/similarity/relation/train/'
+VAL_SIMI_RELATION_FOLDER = '../dataset/similarity/relation/val/'
+
 # generated graph
 TRAIN_GRAPH_PATH = '../dataset/graph/train_graph.json'
 VAL_GRAPH_PATH = '../dataset/graph/val_graph.json'
