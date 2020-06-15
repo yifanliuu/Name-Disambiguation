@@ -6,6 +6,7 @@ import pickle
 import os
 import re
 import scipy.sparse as sp
+import scipy
 import numpy as np
 import torch
 
@@ -114,17 +115,22 @@ def format_name(names):
 
 # -------------- graph preprocess ---------------
 def preprocess_graph(coo_node_list, n_node):
-    coo_numpy = np.array(coo_node_list)
+    coo_numpy = np.array(coo_node_list, dtype=np.int32)
     shape = (n_node, n_node)
     rows = coo_numpy[:, 0]
     cols = coo_numpy[:, 1]
     data = coo_numpy[:, 2]
-    adj = sp.coo_matrix(data, (rows, cols), shape)
+    adj = sp.coo_matrix((data, (rows, cols)), shape)
+    adj = adj + adj.T.multiply(adj.T > adj) - adj.multiply(adj.T > adj)
     adj_ = adj + sp.eye(adj.shape[0])
     rowsum = np.array(adj_.sum(1))
+    # print(np.max(rowsum), np.min(rowsum))
     degree_mat_inv_sqrt = sp.diags(np.power(rowsum, -0.5).flatten())
     adj_normalized = adj_.dot(degree_mat_inv_sqrt).transpose().dot(
         degree_mat_inv_sqrt).tocoo()
+
+    # print(np.max(adj_normalized), np.min(adj_normalized))
+
     # return sparse_to_tuple(adj_normalized)
     return sparse_mx_to_torch_sparse_tensor(adj_normalized), adj
 
@@ -169,7 +175,27 @@ def generateRawResult():
     pass
 
 # ------------- mapping idx to paper id/ paper id to idx ----------
-# TODO:
+
+
+def graphMapping(graph, rfpath=cfg.VAL_AUTHOR_PATH):
+    pid2idx_dict_by_name = pid2idxMapping(rfpath=rfpath)
+    for idx, name in enumerate(graph):
+        pid2idx_dict = pid2idx_dict_by_name[name]
+        for i, triplets in enumerate(graph[name]):
+            graph[name][i][0] = pid2idx_dict[triplets[0]]
+            graph[name][i][1] = pid2idx_dict[triplets[1]]
+    return graph
+
+
+def pid2idxMapping(rfpath=cfg.VAL_AUTHOR_PATH):
+    author_pubs_raw = load_json(rfpath=rfpath)
+    pid2idx_dict_by_name = {}
+    for i, name in enumerate(author_pubs_raw):
+        pid2idx_dict = {}
+        for j, pid in enumerate(author_pubs_raw[name]):
+            pid2idx_dict[pid] = j
+        pid2idx_dict_by_name[name] = pid2idx_dict
+    return pid2idx_dict_by_name
 
 
 if __name__ == "__main__":
