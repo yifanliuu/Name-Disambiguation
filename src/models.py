@@ -7,9 +7,8 @@ from gensim.models import word2vec
 from gensim.models.keyedvectors import KeyedVectors
 import config as cfg
 
-# TODO: global embedding related models
-
 # ------------ Word2Vec Class --------------
+
 
 class Word2Vec():
 
@@ -132,8 +131,9 @@ class Decoder(nn.Module):
 
 
 class AutoEncoder(nn.Module):
-    def __init__(self):
+    def __init__(self, training=True):
         super(AutoEncoder, self).__init__()
+        self.training = training
         self.encoder = Encoder(
             n_input_features=100,
             n_hidden_features=128,

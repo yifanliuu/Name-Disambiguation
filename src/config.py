@@ -10,7 +10,7 @@ VAL_AUTHOR_PATH = '../dataset/valid/sna_valid_author_raw.json'
 VAL_PUB_PATH = '../dataset/valid/sna_valid_pub.json'
 VAL_RESULT_PATH = '../dataset/valid/valid_res.json'
 
-#test_files
+# test_files
 TEST_AUTHOR_PATH = '../dataset/test/sna_test_author_raw.json'
 TEST_PUB_PATH = '../dataset/test/test_pub_sna.json'
 TEST_RESULT_PATH = '../dataset/test/example_evaluation_scratch.json'
@@ -23,7 +23,13 @@ STOP_WORDS_PATH = '../dataset/stop_words.txt'
 TRAIN_PUB_FEATURES_PATH = '../dataset/features/train_pub_features.txt'
 VAL_PUB_FEATURES_PATH = '../dataset/features/val_pub_features.txt'
 
+TRAIN_RELATION_FEATURES_PATH = '../dataset/features/train_relation_features.txt'
+VAL_RELATION_FEATURES_PATH = '../dataset/features/val_relation_features.txt'
 
 # similary of semantic features by Author
 TRAIN_SIMI_SENMATIC_FOLDER = '../dataset/similarity/sematic/train/'
 VAL_SIMI_SENMATIC_FOLDER = '../dataset/similarity/sematic/val/'
+
+# generated graph
+TRAIN_GRAPH_PATH = '../dataset/graph/train_graph.json'
+VAL_GRAPH_PATH = '../dataset/graph/val_graph.json'

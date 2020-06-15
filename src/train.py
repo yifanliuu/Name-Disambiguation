@@ -4,18 +4,19 @@ import torch.nn.functional as F
 import time
 import scipy.sparse as sp
 from utils import *
+from preprocess import *
 
 
 class AutoEncoderTrainer():
-    def __init__(self, USE_CUDA=True):
+    def __init__(self, USE_CUDA=True, max_iter=100):
         self.model = AutoEncoder()
-        self.optimizer = torch.optim.Adagrad
-        self.iterations = 0
+        self.optimizer = torch.optim.Adagrad(self.model.parameters(), lr=1e-3)
+        self.iterations = max_iter
         self.USE_CUDA = USE_CUDA
 
-    def run(self, Y, candidate_set_graph, epochs=1):
+    def run(self, Y, candidate_set_graph, n_nodes, epochs=1):
         for i in range(1, epochs + 1):
-            self.train(Y, candidate_set_graph)
+            self.train(Y, candidate_set_graph, n_nodes)
 
     def loss_function(self, preds, labels, mu, logvar, n_nodes, norm, pos_weight):
         cost = norm * \
@@ -30,47 +31,66 @@ class AutoEncoderTrainer():
             1 + 2 * logvar - mu.pow(2) - logvar.exp().pow(2), 1))
         return cost + KLD
 
-    def train(self, Y, normed_A):
-
+    def train(self, Y, normed_A, labels_A, n_node, norm):
         for i in range(1, self.iterations + 1):
-            pos_weight = float(
-                adj.shape[0] * adj.shape[0] - adj.sum()) / adj.sum()
-            norm = adj.shape[0] * adj.shape[0] / \
-                float((adj.shape[0] * adj.shape[0] - adj.sum()) * 2)
-
             t = time.time()
             self.model.train()
             self.optimizer.zero_grad()
             recovered, mu, logvar = self.model(Y, normed_A)
             loss = self.loss_function(
                 preds=recovered,
-                labels=adj_label,
+                labels=labels_A,
                 mu=mu,
                 logvar=logvar,
-                n_nodes=n_nodes,
+                n_nodes=n_node,
                 norm=norm,
                 pos_weight=pos_weight
             )
             loss.backward()
-            self.optimizer.zero_grad()
-            self.optimizer.step(loss)
-        self.iterations += i
+            self.optimizer.step()
+            print("Epoch: {}, train loss={:.5f}, time cost: {:.5f}".format(
+                i, loss, time.time() - t))
 
+    def generate_embedding(self, Y, normed_A):
+        mu, _ = self.model.encoder(Y, norm_A)
+        return mu
 
 
 if __name__ == "__main__":
-    word2vec = Word2Vec()
+    # word2vec = Word2Vec()
     # word2vec.train()
     # word2vec.save()
-    # how to get Y
-    adj, features = load_data(args.dataset_str)
-    raw_feat = word2vec.load()
-    feat_dict = generate_embeded_features(raw_feat)
 
-    adj_dict = generate_graph()
+    graph = load_json(rfpath=cfg.VAL_GRAPH_PATH)
+    feats = load_pub_features(rfpath=cfg.VAL_PUB_FEATURES_PATH)
+    author_pubs_raw = load_json(rfpath=cfg.VAL_AUTHOR_PATH)
+    relation_features = {}
 
-    adj_norm = preprocess_graph(adj)
-    adj_label = adj_train + sp.eye(adj_train.shape[0])
-    adj_label = torch.FloatTensor(adj_label.toarray())
+    for idx, name in enumerate(graph):
+        coo_node_list = graph[name]
+        n_node = len(author_pubs_raw[name])
+        Y = np.empty([n_node, EMBEDDING_SIZE])
+        for i, pid in enumerate(author_pubs_raw[name]):
+            Y = np.append(Y, np.reshape(
+                feats[pid], [1, EMBEDDING_SIZE]), axis=0)
 
-    trainer = AutoEncoderTrainer()
+        adj_norm, adj = preprocess_graph(coo_node_list, n_node)
+        adj_label = adj + sp.eye(n_node)
+        adj_label = torch.FloatTensor(adj_label.toarray())
+
+        pos_weight = float(n_node * n_node - adj.sum()) / adj.sum()
+        norm = n_node * n_node / \
+            float((n_node * n_node - adj.sum()) * 2)
+
+        trainer = AutoEncoderTrainer()
+        trainer.train(
+            Y=Y,
+            normed_A=adj_norm,
+            labels_A=adj_label,
+            n_node=n_node,
+            norm=norm
+        )
+
+        relation_features[name] = trainer.generate_embedding(Y, adj_norm)
+
+    dump_data(relation_features, wfname=cfg.VAL_RELATION_FEATURES_PATH)
