@@ -24,12 +24,12 @@ class PaperCluster():
         else:
             self.paper_by_author = load_json(author_path)
         
+        print("Auhtor PaperNum LonelyMountain ClusterNum")
         for author, papers in self.paper_by_author.items():
             l = len(papers)
             simi = np.load(simi_folder + author + '.npy').reshape(l, l)
-            simi = normalization(-1*simi)
             self.res[author] = self.dbscan_model.fit_predict(simi)
-            print(author, l, np.sum(self.res[author] == -1))
+            print(author,  l, np.sum(self.res[author] == -1), np.max(self.res[author]))
 
     def tranfer2file(self, savepath):
         resdict = {}
@@ -48,5 +48,5 @@ class PaperCluster():
 
 if __name__ == "__main__":
     papercluster = PaperCluster()
-    papercluster.dbscan(cfg.VAL_AUTHOR_PATH, cfg.VAL_SIMI_SENMATIC_FOLDER, eps=0.1, min_samples=4, data_labeled=0)
+    papercluster.dbscan(cfg.VAL_AUTHOR_PATH, cfg.VAL_SIMI_SENMATIC_FOLDER, eps=0.15, min_samples=4, data_labeled=0)
     papercluster.tranfer2file(cfg.VAL_RESULT_PATH)
