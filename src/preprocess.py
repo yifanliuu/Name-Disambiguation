@@ -7,6 +7,7 @@ import logging
 from models import Word2Vec
 import multiprocessing
 import time
+from sklearn.metrics import pairwise_distances
 from utils import *
 
 
@@ -255,16 +256,25 @@ def Cal_Simalarity_byAuthor_labeled(features_path, author_path, save_folder):
         # print(len(papers))
         time_start = time.time()
         l = len(papers)
-        size = l * l
-        simi_matrix = np.zeros(size)
-        jobs_param = []
-        for index in range(size):
-            i = int(index / l)
-            j = index % l
-            jobs_param.append([features[papers[i]], features[papers[j]]])
-        # print("start calculate")
-        res = p.map(cal_simi_thread, jobs_param)
+        
+        
+        x = []
+        for paper in papers:
+            x.append(features[paper])
+        x = np.array(x)
+        res = pairwise_distances(x, metric='cosine', n_jobs=-1)
+
+        # size = l * l
+        # simi_matrix = np.zeros(size)
+        # jobs_param = []
+        # for index in range(size):
+        #     i = int(index / l)
+        #     j = index % l
+        #     jobs_param.append([features[papers[i]], features[papers[j]]])
+        # # print("start calculate")
+        # res = p.map(cal_simi_thread, jobs_param)
     # write similarity matrices to file
+        
         np.save(save_folder + author + '.npy', np.array(res))
         time_end = time.time()
         print("calculate " + author + " done, using time(s): " +
@@ -286,15 +296,21 @@ def Cal_Simalarity_byAuthor_unlabeled(features_path, author_path, save_folder):
         # print(len(papers))
         time_start = time.time()
         l = len(papers)
-        size = l * l
-        simi_matrix = np.zeros(size)
-        jobs_param = []
-        for index in range(size):
-            i = int(index / l)
-            j = index % l
-            jobs_param.append([features[papers[i]], features[papers[j]]])
-        # print("start calculate")
-        res = p.map(cal_simi_thread, jobs_param)
+        
+        x = []
+        for paper in papers:
+            x.append(features[paper])
+        x = np.array(x)
+        res = pairwise_distances(x, metric='cosine', n_jobs=-1)
+        # size = l * l
+        # simi_matrix = np.zeros(size)
+        # jobs_param = []
+        # for index in range(size):
+        #     i = int(index / l)
+        #     j = index % l
+        #     jobs_param.append([features[papers[i]], features[papers[j]]])
+        # # print("start calculate")
+        # res = p.map(cal_simi_thread, jobs_param)
     # write similarity matrices to file
         np.save(save_folder + author + '.npy', np.array(res))
         time_end = time.time()
