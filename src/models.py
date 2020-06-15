@@ -6,6 +6,7 @@ from torch import nn
 from gensim.models import word2vec
 from gensim.models.keyedvectors import KeyedVectors
 import config as cfg
+from utils import *
 
 # ------------ Word2Vec Class --------------
 
@@ -63,10 +64,17 @@ class GraphConvolution(Module):
         normed_A: normalized adjency matrix A
             shape: [n_papers_in_candidate, n_papers_in_candidate] 
         '''
+
         # support = Y * W
+        # print('Y:')
+        # print(input)
         support = torch.matmul(input, self.weight)
-        # output = A * Y *
+        # print('normed_A:')
+        # output = A * support
+        # print(normed_A)
         output = torch.sparse.mm(normed_A, support)
+        # print('output:')
+        # print(output)
         if self.bias is not None:
             return output + self.bias
         else:
@@ -106,10 +114,16 @@ class Encoder(Module):
             shape: [n_papers_in_candidate, n_papers_in_candidate] 
         '''
         gcn1_output = self.gcn1.forward(Y, normed_A)
+        # print(gcn1_output)
+
         relu_output = self.relu(gcn1_output)
+        # print(relu_output)
+
         dropout_output = self.dropout(relu_output)
-        mu = self.gcn2.forward(dropout_output, normed_A)
-        logvar = self.gcn3.forward(dropout_output, normed_A)
+        # print(dropout_output)
+        # exit(0)
+        mu = self.relu(self.gcn2.forward(dropout_output, normed_A))
+        logvar = self.relu(self.gcn3.forward(dropout_output, normed_A))
         return mu, logvar
 
 # ----------------Decoder -------------------
@@ -127,7 +141,11 @@ class Decoder(nn.Module):
             shape: [n_papers_in_candidate, n_out_features]
         return: shape: [n_papers_in_candidate, n_papers_in_candidate]
         '''
-        return self.sigmoid(torch.matmul(input, torch.transpose(input)))
+        # print(input)
+        output = self.sigmoid(torch.mm(input, input.t()))
+        # print(output)
+        # exit(0)
+        return output
 
 
 class AutoEncoder(nn.Module):
@@ -138,7 +156,7 @@ class AutoEncoder(nn.Module):
             n_input_features=100,
             n_hidden_features=128,
             n_output_features=100,
-            dropout_rate=0.5
+            dropout_rate=0
         )
         self.decoder = Decoder()
 
@@ -152,5 +170,8 @@ class AutoEncoder(nn.Module):
 
     def forward(self, Y, normed_A):
         mu, logvar = self.encoder(Y, normed_A)
+        #print(mu, logvar)
         z = self.sample(mu, logvar)
+        # print(z)
+        # exit(0)
         return self.decoder(z), mu, logvar
