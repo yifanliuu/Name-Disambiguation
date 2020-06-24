@@ -8,7 +8,7 @@ import re
 import scipy.sparse as sp
 import scipy
 import numpy as np
-import torch
+# import torch
 
 # -------------load and save data--------------
 
@@ -77,10 +77,11 @@ def save_pub_features(features, rfpath):
             if count % 10000 == 0:
                 print(str(count) + ' Done')
 
-
  # Using this path: VAL_SEMATIC_FEATURES_PATH to save features by name
+
+
 def save_sematic_features_byAuthor(features, rfpath=cfg.VAL_SEMATIC_FEATURES_PATH):
-     
+
     # Assume we have 4 papers named paper1 - paper4, so features will be like below.
     # features = {
     #     'papaer1': 'feature1'(np.array)
@@ -88,7 +89,7 @@ def save_sematic_features_byAuthor(features, rfpath=cfg.VAL_SEMATIC_FEATURES_PAT
     #     'papaer3': 'feature3'(np.array)
     #     'papaer4': 'feature4'(np.array)
     # }
-     
+
     pass
 
 
@@ -125,6 +126,7 @@ def format_name(names):
     return x
 
 
+'''
 # -------------- graph preprocess ---------------
 def preprocess_graph(coo_node_list, n_node):
     coo_numpy = np.array(coo_node_list, dtype=np.int32)
@@ -145,8 +147,9 @@ def preprocess_graph(coo_node_list, n_node):
 
     # return sparse_to_tuple(adj_normalized)
     return sparse_mx_to_torch_sparse_tensor(adj_normalized), adj
+'''
 
-
+'''
 def sparse_mx_to_torch_sparse_tensor(sparse_mx):
     """Convert a scipy sparse matrix to a torch sparse tensor."""
     sparse_mx = sparse_mx.tocoo().astype(np.float32)
@@ -155,6 +158,7 @@ def sparse_mx_to_torch_sparse_tensor(sparse_mx):
     values = torch.from_numpy(sparse_mx.data)
     shape = torch.Size(sparse_mx.shape)
     return torch.sparse.FloatTensor(indices, values, shape)
+'''
 
 
 def normalization(data):
@@ -191,35 +195,20 @@ def pid2idxMapping(rfpath=cfg.VAL_AUTHOR_PATH):
     return pid2idx_dict_by_name, names
 
 
-'''
-def read_graph(graph_filename):
-    relations = set()
-    nodes = set()
-    graph = {}
+def read_embeddings(name, n_node, filename=cfg.VAL_PUB_FEATURES_PATH, n_embed=100):
 
-    with open(graph_filename) as infile:
-        for line in infile.readlines():
-            source_node, target_node, relation = line.strip().split(' ')
-            source_node = int(source_node)
-            target_node = int(target_node)
-            relation = int(relation)
+    embedding_matrix = np.random.rand(0, n_embed)
 
-            nodes.add(source_node)
-            nodes.add(target_node)
-            relations.add(relation)
+    feats = load_pub_features(rfpath=filename)
+    author_pubs_raw = load_json(rfpath=cfg.VAL_AUTHOR_PATH)
 
-            if source_node not in graph:
-                graph[source_node] = {}
+    for i, pid in enumerate(author_pubs_raw[name]):
+        embedding_matrix = np.append(embedding_matrix, np.reshape(
+            feats[pid], [1, n_embed]), axis=0)
+        # print(embedding_matrix.shape)
 
-            if relation not in graph[source_node]:
-                graph[source_node][relation] = []
+    return embedding_matrix
 
-            graph[source_node][relation].append(target_node)
-
-    n_node = len(nodes)
-    # print relations
-    return n_node, len(relations), graph
-'''
 
 if __name__ == "__main__":
     pass
@@ -229,4 +218,10 @@ if __name__ == "__main__":
     # print(pubs_train)
     # print(pubs_val)
 
-    # -------- test dump_json ----------
+    # -------- test ----------
+    # data = np.load('../results/gen/weiping_liu_gen.npy')
+    # print(data.shape)
+
+    # -------- test read embedding
+    m = read_embeddings('weiping_liu', 684)
+    print(m.shape)

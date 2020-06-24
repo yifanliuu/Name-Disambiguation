@@ -455,7 +455,7 @@ def generateValGraph(name, pid2idx_by_name):
     """
     n_relation = 3
 
-    # 1: author 2: org 3: conf
+    # 0: author 1: org 2: conf
     graph = {}
     for i in range(n_relation):
         graph[i] = {}
@@ -482,7 +482,7 @@ def generateValGraph(name, pid2idx_by_name):
                     graph[p] = {}
                 if p not in paper_author:
                     paper_author[p] = []
-                    graph[p][1] = []
+                    graph[p][0] = []
                 paper_author[p].append(a)
                 if a not in author_paper:
                     author_paper[a] = []
@@ -491,7 +491,7 @@ def generateValGraph(name, pid2idx_by_name):
 
     for i, p in enumerate(paper_author):
         for a in paper_author[p]:
-            graph[p][1] += author_paper[a]
+            graph[p][0] += author_paper[a]
 
     with open('../dataset/features/'+name +
               '_paper_org.txt', 'r', encoding='utf-8') as f2:
@@ -506,7 +506,7 @@ def generateValGraph(name, pid2idx_by_name):
                     graph[p] = {}
                 if p not in paper_org:
                     paper_org[p] = []
-                    graph[p][2] = []
+                    graph[p][1] = []
                 paper_org[p].append(a)
                 if a not in org_paper:
                     org_paper[a] = []
@@ -515,7 +515,7 @@ def generateValGraph(name, pid2idx_by_name):
 
     for i, p in enumerate(paper_org):
         for a in paper_org[p]:
-            graph[p][2] += org_paper[a]
+            graph[p][1] += org_paper[a]
 
     with open('../dataset/features/'+name +
               '_paper_conf.txt', 'r', encoding='utf-8') as f3:
@@ -530,7 +530,7 @@ def generateValGraph(name, pid2idx_by_name):
                     graph[p] = {}
                 if p not in paper_conf:
                     paper_conf[p] = []
-                    graph[p][3] = []
+                    graph[p][2] = []
                 paper_conf[p].append(a)
                 if a not in conf_paper:
                     conf_paper[a] = []
@@ -539,13 +539,12 @@ def generateValGraph(name, pid2idx_by_name):
 
     for i, p in enumerate(paper_conf):
         for a in paper_conf[p]:
-            graph[p][3] += conf_paper[a]
+            graph[p][2] += conf_paper[a]
 
     dump_json(graph, cfg.VAL_GRAPH_PATH+name+'.json')
     return len(pid2idx_by_name), n_relation, graph
 
 
-@deprecated
 def generateRelationFeatures():
     """
     generate graph use co-authors and organization
@@ -574,8 +573,8 @@ if __name__ == "__main__":
     # ---------Cal_Simalarity_byAuthor test------------
 
     # Cal_Simalarity_byAuthor_labeled(cfg.TRAIN_PUB_FEATURES_PATH, cfg.TRAIN_AUTHOR_PATH, cfg.SIMI_SENMATIC_FOLDER)
-    Cal_Simalarity_byAuthor_unlabeled(
-        cfg.VAL_PUB_FEATURES_PATH, cfg.VAL_AUTHOR_PATH, cfg.VAL_SIMI_SENMATIC_FOLDER)
+    # Cal_Simalarity_byAuthor_unlabeled(
+    #    cfg.VAL_PUB_FEATURES_PATH, cfg.VAL_AUTHOR_PATH, cfg.VAL_SIMI_SENMATIC_FOLDER)
 
     # ---------generate_wordembedding test------------
     # generate_wordembedding()
