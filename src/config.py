@@ -22,6 +22,9 @@ STOP_WORDS_PATH = '../dataset/stop_words.txt'
 # feature files
 TRAIN_PUB_FEATURES_PATH = '../dataset/features/train_pub_features.txt'
 VAL_PUB_FEATURES_PATH = '../dataset/features/val_pub_features.txt'
+
+VAL_SEMATIC_FEATURES_PATH = '../dataset/features/val/sematic/'
+
 TRAIN_RELATION_FEATURES_PATH = '../dataset/features/train_relation_features.txt'
 VAL_RELATION_FEATURES_PATH = '../dataset/features/val_relation_features.txt'
 

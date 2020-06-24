@@ -42,7 +42,9 @@ def load_stopWords(rfpath=cfg.STOP_WORDS_PATH):
 
 
 def load_pub_features(rfpath):
+
     print("Loading from " + rfpath + "......")
+
     features = {}
     with open(rfpath, 'r') as rf:
         count = 0
@@ -62,6 +64,7 @@ def load_pub_features(rfpath):
 
 
 def save_pub_features(features, rfpath):
+
     with open(rfpath, 'w') as rf:
         count = 0
         for key, value in features.items():
@@ -73,6 +76,20 @@ def save_pub_features(features, rfpath):
             count += 1
             if count % 10000 == 0:
                 print(str(count) + ' Done')
+
+
+ # Using this path: VAL_SEMATIC_FEATURES_PATH to save features by name
+def save_sematic_features_byAuthor(features, rfpath=cfg.VAL_SEMATIC_FEATURES_PATH):
+     
+    # Assume we have 4 papers named paper1 - paper4, so features will be like below.
+    # features = {
+    #     'papaer1': 'feature1'(np.array)
+    #     'papaer2': 'feature2'(np.array)
+    #     'papaer3': 'feature3'(np.array)
+    #     'papaer4': 'feature4'(np.array)
+    # }
+     
+    pass
 
 
 # -------------evaluate---------------

@@ -441,7 +441,7 @@ if __name__ == "__main__":
     # ---------Cal_Simalarity_byAuthor test------------
 
     # Cal_Simalarity_byAuthor_labeled(cfg.TRAIN_PUB_FEATURES_PATH, cfg.TRAIN_AUTHOR_PATH, cfg.SIMI_SENMATIC_FOLDER)
-    # Cal_Simalarity_byAuthor_unlabeled(cfg.VAL_PUB_FEATURES_PATH, cfg.VAL_AUTHOR_PATH, cfg.VAL_SIMI_SENMATIC_FOLDER)
+    Cal_Simalarity_byAuthor_unlabeled(cfg.VAL_PUB_FEATURES_PATH, cfg.VAL_AUTHOR_PATH, cfg.VAL_SIMI_SENMATIC_FOLDER)
 
     # ---------generate_wordembedding test------------
     # generate_wordembedding()
@@ -451,4 +451,4 @@ if __name__ == "__main__":
     # print(features['srDOamxh'])
 
     # ---------------- generateRelationFeatures ----------
-    generateRelationFeatures(mode='val')
+    #generateRelationFeatures(mode='val')
