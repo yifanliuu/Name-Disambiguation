@@ -62,6 +62,8 @@ if __name__ == "__main__":
     # word2vec.save()
 
     graph = load_json(rfpath=cfg.VAL_GRAPH_PATH)
+    print(graph)
+    exit(0)
     feats = load_pub_features(rfpath=cfg.VAL_PUB_FEATURES_PATH)
     author_pubs_raw = load_json(rfpath=cfg.VAL_AUTHOR_PATH)
     relation_features = {}
