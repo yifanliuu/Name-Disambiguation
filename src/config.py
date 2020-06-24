@@ -23,12 +23,15 @@ STOP_WORDS_PATH = '../dataset/stop_words.txt'
 TRAIN_PUB_FEATURES_PATH = '../dataset/features/train_pub_features.txt'
 VAL_PUB_FEATURES_PATH = '../dataset/features/val_pub_features.txt'
 
+VAL_SEMATIC_FEATURES_PATH = '../dataset/features/val/sematic/'
+
 TRAIN_RELATION_FEATURES_PATH = '../dataset/features/train_relation_features.txt'
 VAL_RELATION_FEATURES_PATH = '../dataset/features/val_relation_features.txt'
 
-# similary of semantic features by Author
+# similary of features by Author
 TRAIN_SIMI_SENMATIC_FOLDER = '../dataset/similarity/sematic/train/'
 VAL_SIMI_SENMATIC_FOLDER = '../dataset/similarity/sematic/val/'
+VAL_SIMI_RELATION_FOLDER = '../dataset/similarity/relation/val/'
 
 # similary of relation features by Author
 TRAIN_SIMI_RELATION_FOLDER = '../dataset/similarity/relation/train/'
