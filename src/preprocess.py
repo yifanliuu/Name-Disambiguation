@@ -106,7 +106,6 @@ def generateCandidateSets(mode='train'):
         pubs = []  # all papers
         labels = []  # ground truth
 
-    # TODO: take off stop words and words appear less then 3 times
         for identity in authors[name]:
             identity_pubs = authors[name][identity]
             for pub in identity_pubs:
@@ -235,6 +234,126 @@ def generateRawFeatrues(mode='train'):
     return sementic_features
 
 
+def save_relation(paper_list, pubs_raw, name):
+    # trained by all text in the datasets.
+
+    r = '[!“”"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~—～’]+'
+    stopword = ['at', 'based', 'in', 'of', 'for', 'on', 'and', 'to',
+                'an', 'using', 'with', 'the', 'by', 'we', 'be', 'is', 'are', 'can']
+    stopword1 = ['university', 'univ', 'china', 'department', 'dept', 'laboratory', 'lab', 'school', 'al', 'et',
+                 'institute', 'inst', 'college', 'chinese', 'beijing', 'journal', 'science', 'international']
+
+    f1 = open('../dataset/features/'+name +
+              '_paper_author.txt', 'w', encoding='utf-8')
+    f2 = open('../dataset/features/'+name +
+              '_paper_conf.txt', 'w', encoding='utf-8')
+    f3 = open('../dataset/features/'+name +
+              '_paper_word.txt', 'w', encoding='utf-8')
+    f4 = open('../dataset/features/'+name +
+              '_paper_org.txt', 'w', encoding='utf-8')
+
+    taken = name.split("_")
+    name = taken[0] + taken[1]
+    name_reverse = taken[1] + taken[0]
+    if len(taken) > 2:
+        name = taken[0] + taken[1] + taken[2]
+        name_reverse = taken[2] + taken[0] + taken[1]
+
+    authorname_dict = {}
+
+    tcp = set()
+    for i, pid in enumerate(paper_list):
+        pub = pubs_raw[pid]
+
+        # save authors
+        org = ""
+        for author in pub["authors"]:
+            authorname = re.sub(r, '', author["name"]).lower()
+            taken = authorname.split(" ")
+            if len(taken) == 2:  # 检测目前作者名是否在作者词典中
+                authorname = taken[0] + taken[1]
+                authorname_reverse = taken[1] + taken[0]
+
+                if authorname not in authorname_dict:
+                    if authorname_reverse not in authorname_dict:
+                        authorname_dict[authorname] = 1
+                    else:
+                        authorname = authorname_reverse
+            else:
+                authorname = authorname.replace(" ", "")
+
+            if authorname != name and authorname != name_reverse:
+                f1.write(pid + '\t' + authorname + '\n')
+
+            else:
+                if "org" in author:
+                    org = author["org"]
+
+        # save org 待消歧作者的机构名
+        pstr = org.strip()
+        pstr = pstr.lower()  # 小写
+        pstr = re.sub(r, ' ', pstr)  # 去除符号
+        pstr = re.sub(r'\s{2,}', ' ', pstr).strip()  # 去除多余空格
+        pstr = pstr.split(' ')
+        pstr = [word for word in pstr if len(word) > 1]
+        pstr = [word for word in pstr if word not in stopword1]
+        pstr = [word for word in pstr if word not in stopword]
+        pstr = set(pstr)
+        for word in pstr:
+            f4.write(pid + '\t' + word + '\n')
+
+        # save venue
+        pstr = pub["venue"].strip()
+        pstr = pstr.lower()
+        pstr = re.sub(r, ' ', pstr)
+        pstr = re.sub(r'\s{2,}', ' ', pstr).strip()
+        pstr = pstr.split(' ')
+        pstr = [word for word in pstr if len(word) > 1]
+        pstr = [word for word in pstr if word not in stopword1]
+        pstr = [word for word in pstr if word not in stopword]
+        for word in pstr:
+            f2.write(pid + '\t' + word + '\n')
+        if len(pstr) == 0:
+            f2.write(pid + '\t' + 'null' + '\n')
+
+        # save text
+        pstr = ""
+        keyword = ""
+        if "keywords" in pub:
+            for word in pub["keywords"]:
+                keyword = keyword+word+" "
+        pstr = pstr + pub["title"]
+        pstr = pstr.strip()
+        pstr = pstr.lower()
+        pstr = re.sub(r, ' ', pstr)
+        pstr = re.sub(r'\s{2,}', ' ', pstr).strip()
+        pstr = pstr.split(' ')
+        pstr = [word for word in pstr if len(word) > 1]
+        pstr = [word for word in pstr if word not in stopword]
+        for word in pstr:
+            f3.write(pid + '\t' + word + '\n')
+
+        # save all words' embedding
+        pstr = keyword + " " + pub["title"] + " " + pub["venue"] + " " + org
+        if "year" in pub:
+            pstr = pstr + " " + str(pub["year"])
+        pstr = pstr.strip()
+        pstr = pstr.lower()
+        pstr = re.sub(r, ' ', pstr)
+        pstr = re.sub(r'\s{2,}', ' ', pstr).strip()
+        pstr = pstr.split(' ')
+        pstr = [word for word in pstr if len(word) > 2]
+        pstr = [word for word in pstr if word not in stopword]
+        pstr = [word for word in pstr if word not in stopword1]
+
+    # the paper index that lack text information
+    dump_data(tcp, '../dataset/features/'+name+'_tcp.pkl')
+    f1.close()
+    f2.close()
+    f3.close()
+    f4.close()
+
+
 def cal_simi_thread(param):
     return cosangle(param[0], param[1])
 
@@ -310,7 +429,7 @@ def Cal_Simalarity_byAuthor_unlabeled(features_path, author_path, save_folder):
         #     jobs_param.append([features[papers[i]], features[papers[j]]])
         # # print("start calculate")
         # res = p.map(cal_simi_thread, jobs_param)
-    # write similarity matrices to file
+        # write similarity matrices to file
         np.save(save_folder + author + '.npy', np.array(res))
         print(res.shape)
         time_end = time.time()
@@ -330,98 +449,112 @@ def generate_wordembedding():
 # ------------------- graph generation --------------------
 
 
-def generateGraph(mode='train'):
+def generateValGraph(name, pid2idx_by_name):
     """
     generate graph use co-authors and organization
     """
-    pubs_raw = None
-    name_to_pubs = None
-    if mode == 'train':
-        pubs_raw = load_json(cfg.TRAIN_PUB_PATH)
-        _, name_to_pubs = generateCandidateSets(mode=mode)
-    elif mode == 'val':
-        pubs_raw = load_json(cfg.VAL_PUB_PATH)
-        name_to_pubs = generateCandidateSetsTest()
-    elif mode == 'test':
-        exit(0)
-    else:
-        raise Exception("mode should be 'train' or 'val' or 'test'\n")
+    n_relation = 3
 
+    # 1: author 2: org 3: conf
     graph = {}
-    for i, name in enumerate(name_to_pubs):
-        print(i, name)
-        paper_list = name_to_pubs[name]
-        coo_node_list = []
+    for i in range(n_relation):
+        graph[i] = {}
 
-        for j, pid1 in enumerate(paper_list):
-            for k, pid2 in enumerate(paper_list):
-                if(j >= k):
-                    continue
-                name_count, org_count = coAuthorOrg_num(
-                    pubs_raw[pid1]['authors'],
-                    pubs_raw[pid2]['authors']
-                )
-                count = name_count + org_count
-                if count != 0:
-                    coo_node_list.append([pid1, pid2, count])
-        graph[name] = coo_node_list
-        # generate content
-        # wf_content = open(join(graph_dir, '{}_pubs_content.txt'.format(name)), 'w')
-    if mode == 'train':
-        dump_json(graph, cfg.TRAIN_GRAPH_PATH)
-    elif mode == 'val':
-        dump_json(graph, cfg.VAL_GRAPH_PATH)
-    return graph
+    # dict
+    paper_author = dict()
+    author_paper = dict()
+    paper_org = dict()
+    org_paper = dict()
+    paper_conf = dict()
+    conf_paper = dict()
+    temp = set()
+
+    with open('../dataset/features/'+name +
+              '_paper_author.txt', 'r', encoding='utf-8') as f1:
+        for line in f1:
+            temp.add(line)
+        for line in temp:
+            toks = line.strip().split("\t")
+            if len(toks) == 2:
+                p, a = toks[0], toks[1]
+                p = pid2idx_by_name[p]
+                if p not in graph:
+                    graph[p] = {}
+                if p not in paper_author:
+                    paper_author[p] = []
+                    graph[p][1] = []
+                paper_author[p].append(a)
+                if a not in author_paper:
+                    author_paper[a] = []
+                author_paper[a].append(p)
+        temp.clear()
+
+    for i, p in enumerate(paper_author):
+        for a in paper_author[p]:
+            graph[p][1] += author_paper[a]
+
+    with open('../dataset/features/'+name +
+              '_paper_org.txt', 'r', encoding='utf-8') as f2:
+        for line in f2:
+            temp.add(line)
+        for line in temp:
+            toks = line.strip().split("\t")
+            if len(toks) == 2:
+                p, a = toks[0], toks[1]
+                p = pid2idx_by_name[p]
+                if p not in graph:
+                    graph[p] = {}
+                if p not in paper_org:
+                    paper_org[p] = []
+                    graph[p][2] = []
+                paper_org[p].append(a)
+                if a not in org_paper:
+                    org_paper[a] = []
+                org_paper[a].append(p)
+        temp.clear()
+
+    for i, p in enumerate(paper_org):
+        for a in paper_org[p]:
+            graph[p][2] += org_paper[a]
+
+    with open('../dataset/features/'+name +
+              '_paper_conf.txt', 'r', encoding='utf-8') as f3:
+        for line in f3:
+            temp.add(line)
+        for line in temp:
+            toks = line.strip().split("\t")
+            if len(toks) == 2:
+                p, a = toks[0], toks[1]
+                p = pid2idx_by_name[p]
+                if p not in graph:
+                    graph[p] = {}
+                if p not in paper_conf:
+                    paper_conf[p] = []
+                    graph[p][3] = []
+                paper_conf[p].append(a)
+                if a not in conf_paper:
+                    conf_paper[a] = []
+                conf_paper[a].append(p)
+        temp.clear()
+
+    for i, p in enumerate(paper_conf):
+        for a in paper_conf[p]:
+            graph[p][3] += conf_paper[a]
+
+    dump_json(graph, cfg.VAL_GRAPH_PATH+name+'.json')
+    return len(pid2idx_by_name), n_relation, graph
 
 
-def generateRelationFeatures(mode='train'):
+@deprecated
+def generateRelationFeatures():
     """
     generate graph use co-authors and organization
     """
-    pubs_raw = None
-    name_to_pubs = None
-    if mode == 'train':
-        pubs_raw = load_json(cfg.TRAIN_PUB_PATH)
-        _, name_to_pubs = generateCandidateSets(mode=mode)
-    elif mode == 'val':
-        pubs_raw = load_json(cfg.VAL_PUB_PATH)
-        name_to_pubs = generateCandidateSetsTest()
-    elif mode == 'test':
-        exit(0)
-    else:
-        raise Exception("mode should be 'train' or 'val' or 'test'\n")
-
-    for i, name in enumerate(name_to_pubs):
-        print(i, name)
-        paper_list = name_to_pubs[name]
-        relation_matrix = np.zeros([len(paper_list), len(paper_list)])
-
-        for j, pid1 in enumerate(paper_list):
-            for k, pid2 in enumerate(paper_list):
-                if(j >= k):
-                    continue
-                name_count, org_count = coAuthorOrg_num(
-                    pubs_raw[pid1]['authors'],
-                    pubs_raw[pid2]['authors']
-                )
-                count = name_count + org_count
-                if count != 0:
-                    relation_matrix[j, k] = count
-                    relation_matrix[k, j] = count
-
-        np.save(cfg.VAL_SIMI_RELATION_FOLDER + name +
-                '.npy', np.array(relation_matrix))
-        print(relation_matrix.shape)
-        print("calculate " + name + " done")
-        # generate content
-        # wf_content = open(join(graph_dir, '{}_pubs_content.txt'.format(name)), 'w')
     return
 
 
 if __name__ == "__main__":
     pass
-    # ---------generateGraph test -------------------
-    # generateGraph(mode='val')
     # ---------generateCandidateSets test------------
     # labels_by_name, pubs_by_name = generateCandidateSets()
     # print(labels_by_name)
@@ -451,4 +584,21 @@ if __name__ == "__main__":
     # print(features['srDOamxh'])
 
     # ---------------- generateRelationFeatures ----------
-    generateRelationFeatures(mode='val')
+    # generateRelationFeatures(mode='val')
+
+    # ---------------- save relation test ----------------
+    # name_pubs = load_json(cfg.VAL_AUTHOR_PATH)
+    # pubs_raw = load_json(cfg.VAL_PUB_PATH)
+    # for i, name in enumerate(name_pubs):
+    #    save_relation(name_pubs[name], pubs_raw=pubs_raw, name=name)
+
+    # ---------generateGraph test -------------------
+    #
+    pid2idx_by_name, names = pid2idxMapping()
+    # generate graph by name
+    for i, name in enumerate(names):
+        n_node, n_relation, graph = generateValGraph(
+            name,
+            pid2idx_by_name[name]
+        )
+        print(name, n_node, n_relation)

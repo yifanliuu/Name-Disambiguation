@@ -76,8 +76,6 @@ def save_pub_features(features, rfpath):
 
 
 # -------------evaluate---------------
-
-
 def pairwise_evaluate(correct_labels, pred_labels):
     TP = 0.0  # Pairs Correctly Predicted To SameAuthor
     TP_FP = 0.0  # Total Pairs Predicted To SameAuthor
@@ -103,11 +101,8 @@ def pairwise_evaluate(correct_labels, pred_labels):
             (pairwise_precision + pairwise_recall)
     return pairwise_precision, pairwise_recall, pairwise_f1
 
-# TODO: inverted document frequency
 
 # --------------get author and org features----------------
-
-
 def format_name(names):
     x = [k.strip() for k in names.lower().strip()]
     return x
@@ -135,63 +130,6 @@ def preprocess_graph(coo_node_list, n_node):
     return sparse_mx_to_torch_sparse_tensor(adj_normalized), adj
 
 
-def precessname(name):
-    name = name.lower().replace(' ', '_')
-    name = name.replace('.', '_')
-    name = name.replace('-', '')
-    name = re.sub(r"_{2,}", "_", name)
-    return name
-
-
-def preprocessorg(org):
-    if org != "":
-        org = org.replace('Sch.', 'School')
-        org = org.replace('Dept.', 'Department')
-        org = org.replace('Coll.', 'College')
-        org = org.replace('Inst.', 'Institute')
-        org = org.replace('Univ.', 'University')
-        org = org.replace('Lab ', 'Laboratory ')
-        org = org.replace('Lab.', 'Laboratory')
-        org = org.replace('Natl.', 'National')
-        org = org.replace('Comp.', 'Computer')
-        org = org.replace('Sci.', 'Science')
-        org = org.replace('Tech.', 'Technology')
-        org = org.replace('Technol.', 'Technology')
-        org = org.replace('Elec.', 'Electronic')
-        org = org.replace('Engr.', 'Engineering')
-        org = org.replace('Aca.', 'Academy')
-        org = org.replace('Syst.', 'Systems')
-        org = org.replace('Eng.', 'Engineering')
-        org = org.replace('Res.', 'Research')
-        org = org.replace('Appl.', 'Applied')
-        org = org.replace('Chem.', 'Chemistry')
-        org = org.replace('Prep.', 'Petrochemical')
-        org = org.replace('Phys.', 'Physics')
-        org = org.replace('Phys.', 'Physics')
-        org = org.replace('Mech.', 'Mechanics')
-        org = org.replace('Mat.', 'Material')
-        org = org.replace('Cent.', 'Center')
-        org = org.replace('Ctr.', 'Center')
-        org = org.replace('Behav.', 'Behavior')
-        org = org.replace('Atom.', 'Atomic')
-        org = org.split(';')[0]
-    return org
-
-
-def coAuthorOrg_num(names1, names2):
-    name_count = 0
-    org_count = 0
-    for name1 in names1:
-        for name2 in names2:
-            if precessname(name1['name']) == precessname(name2['name']):
-                name_count += 1
-            if name1['org'] == '' or name2['org'] == '':
-                continue
-            if name1['org'] == name2['org']:
-                org_count += 1
-    return name_count, org_count
-
-
 def sparse_mx_to_torch_sparse_tensor(sparse_mx):
     """Convert a scipy sparse matrix to a torch sparse tensor."""
     sparse_mx = sparse_mx.tocoo().astype(np.float32)
@@ -208,17 +146,13 @@ def normalization(data):
 
 
 # ---------------- cos angle ------------------
-
-
 def cosangle(a, b):
     return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
 
 
-# ------------- mapping idx to paper id/ paper id to idx ----------
-
-
+# ------------- mapping paper id to idx ----------
 def graphMapping(graph, rfpath=cfg.VAL_AUTHOR_PATH):
-    pid2idx_dict_by_name = pid2idxMapping(rfpath=rfpath)
+    pid2idx_dict_by_name, _ = pid2idxMapping(rfpath=rfpath)
     for idx, name in enumerate(graph):
         pid2idx_dict = pid2idx_dict_by_name[name]
         for i, triplets in enumerate(graph[name]):
@@ -230,13 +164,45 @@ def graphMapping(graph, rfpath=cfg.VAL_AUTHOR_PATH):
 def pid2idxMapping(rfpath=cfg.VAL_AUTHOR_PATH):
     author_pubs_raw = load_json(rfpath=rfpath)
     pid2idx_dict_by_name = {}
+    names = []
     for i, name in enumerate(author_pubs_raw):
         pid2idx_dict = {}
+        names.append(name)
         for j, pid in enumerate(author_pubs_raw[name]):
             pid2idx_dict[pid] = j
         pid2idx_dict_by_name[name] = pid2idx_dict
-    return pid2idx_dict_by_name
+    return pid2idx_dict_by_name, names
 
+
+'''
+def read_graph(graph_filename):
+    relations = set()
+    nodes = set()
+    graph = {}
+
+    with open(graph_filename) as infile:
+        for line in infile.readlines():
+            source_node, target_node, relation = line.strip().split(' ')
+            source_node = int(source_node)
+            target_node = int(target_node)
+            relation = int(relation)
+
+            nodes.add(source_node)
+            nodes.add(target_node)
+            relations.add(relation)
+
+            if source_node not in graph:
+                graph[source_node] = {}
+
+            if relation not in graph[source_node]:
+                graph[source_node][relation] = []
+
+            graph[source_node][relation].append(target_node)
+
+    n_node = len(nodes)
+    # print relations
+    return n_node, len(relations), graph
+'''
 
 if __name__ == "__main__":
     pass
@@ -247,10 +213,3 @@ if __name__ == "__main__":
     # print(pubs_val)
 
     # -------- test dump_json ----------
-    '''
-    a = np.ones([2, 2])
-    b = {}
-    b['yes'] = a
-    dump_data(b, wfname='../test.txt')
-    '''
-    print(load_data('../test.txt'))
