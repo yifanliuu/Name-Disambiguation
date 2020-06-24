@@ -135,13 +135,58 @@ def preprocess_graph(coo_node_list, n_node):
     return sparse_mx_to_torch_sparse_tensor(adj_normalized), adj
 
 
+def precessname(name):
+    name = name.lower().replace(' ', '_')
+    name = name.replace('.', '_')
+    name = name.replace('-', '')
+    name = re.sub(r"_{2,}", "_", name)
+    return name
+
+
+def preprocessorg(org):
+    if org != "":
+        org = org.replace('Sch.', 'School')
+        org = org.replace('Dept.', 'Department')
+        org = org.replace('Coll.', 'College')
+        org = org.replace('Inst.', 'Institute')
+        org = org.replace('Univ.', 'University')
+        org = org.replace('Lab ', 'Laboratory ')
+        org = org.replace('Lab.', 'Laboratory')
+        org = org.replace('Natl.', 'National')
+        org = org.replace('Comp.', 'Computer')
+        org = org.replace('Sci.', 'Science')
+        org = org.replace('Tech.', 'Technology')
+        org = org.replace('Technol.', 'Technology')
+        org = org.replace('Elec.', 'Electronic')
+        org = org.replace('Engr.', 'Engineering')
+        org = org.replace('Aca.', 'Academy')
+        org = org.replace('Syst.', 'Systems')
+        org = org.replace('Eng.', 'Engineering')
+        org = org.replace('Res.', 'Research')
+        org = org.replace('Appl.', 'Applied')
+        org = org.replace('Chem.', 'Chemistry')
+        org = org.replace('Prep.', 'Petrochemical')
+        org = org.replace('Phys.', 'Physics')
+        org = org.replace('Phys.', 'Physics')
+        org = org.replace('Mech.', 'Mechanics')
+        org = org.replace('Mat.', 'Material')
+        org = org.replace('Cent.', 'Center')
+        org = org.replace('Ctr.', 'Center')
+        org = org.replace('Behav.', 'Behavior')
+        org = org.replace('Atom.', 'Atomic')
+        org = org.split(';')[0]
+    return org
+
+
 def coAuthorOrg_num(names1, names2):
     name_count = 0
     org_count = 0
     for name1 in names1:
         for name2 in names2:
-            if name1['name'] == name2['name']:
+            if precessname(name1['name']) == precessname(name2['name']):
                 name_count += 1
+            if name1['org'] == '' or name2['org'] == '':
+                continue
             if name1['org'] == name2['org']:
                 org_count += 1
     return name_count, org_count
@@ -168,11 +213,6 @@ def normalization(data):
 def cosangle(a, b):
     return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
 
-# ---------------- generateRawResult ----------
-
-
-def generateRawResult():
-    pass
 
 # ------------- mapping idx to paper id/ paper id to idx ----------
 

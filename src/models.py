@@ -127,7 +127,7 @@ class Encoder(Module):
         return mu, logvar
 
 # ----------------Decoder -------------------
-# Decoder: g2(Z) = sigmoid(Z'Z)
+# Decoder: g2(Z) = sigmoid(ZZ')
 
 
 class Decoder(nn.Module):
