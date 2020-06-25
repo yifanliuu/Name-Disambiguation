@@ -77,6 +77,27 @@ def save_pub_features(features, rfpath):
             if count % 10000 == 0:
                 print(str(count) + ' Done')
 
+def save_triplets(triplets, rfpath):
+
+    with open(rfpath, 'w') as rf:
+        count = 0
+        for triplet in triplets:
+            triplet = ' '.join(triplet) + '\n'
+            rf.write(triplet)
+            count += 1
+            if count % 10000 == 0:
+                print(str(count) + ' Done')
+
+
+def load_triplets(rfpath):
+
+    with open(rfpath, 'r') as rf:
+        count = 0
+        triplets = rf.readlines()
+        for i in range(len(triplets)):
+            triplets[i] = triplets[i].strip.split(' ')
+        return triplets
+
 
  # Using this path: VAL_SEMATIC_FEATURES_PATH to save features by name
 def save_sematic_features_byAuthor(features, rfpath=cfg.VAL_SEMATIC_FEATURES_PATH):

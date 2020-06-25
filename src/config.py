@@ -40,3 +40,5 @@ VAL_SIMI_RELATION_FOLDER = '../dataset/similarity/relation/val/'
 # generated graph
 TRAIN_GRAPH_PATH = '../dataset/graph/train_graph.json'
 VAL_GRAPH_PATH = '../dataset/graph/val_graph.json'
+
+TRIPLETS_PATH = '../dataset/triplets.txt'

@@ -175,3 +175,19 @@ class AutoEncoder(nn.Module):
         # print(z)
         # exit(0)
         return self.decoder(z), mu, logvar
+
+
+class SematicNN(nn.Module):
+    """
+    在上面的Activation_Net的基础上，增加了一个加快收敛速度的方法——批标准化
+    """
+    def __init__(self):
+        super(SematicNN, self).__init__()
+        self.layer1 = nn.Sequential(nn.Linear(100, 128), nn.BatchNorm1d(128), nn.ReLU(True))
+        self.dropout = nn.Dropout(0.5)
+        self.layer2 = nn.Linear(128, 64) 
+    def forward(self, x):
+        x = self.layer1(x)
+        x = self.dropout(x)
+        x = self.layer2(x)
+        return x
