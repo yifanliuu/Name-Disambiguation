@@ -8,7 +8,7 @@ import re
 import scipy.sparse as sp
 import scipy
 import numpy as np
-import torch
+# import torch
 
 # -------------load and save data--------------
 
@@ -100,8 +100,10 @@ def load_triplets(rfpath):
 
 
  # Using this path: VAL_SEMATIC_FEATURES_PATH to save features by name
+
+
 def save_sematic_features_byAuthor(features, rfpath=cfg.VAL_SEMATIC_FEATURES_PATH):
-     
+
     # Assume we have 4 papers named paper1 - paper4, so features will be like below.
     # features = {
     #     'papaer1': 'feature1'(np.array)
@@ -109,13 +111,11 @@ def save_sematic_features_byAuthor(features, rfpath=cfg.VAL_SEMATIC_FEATURES_PAT
     #     'papaer3': 'feature3'(np.array)
     #     'papaer4': 'feature4'(np.array)
     # }
-     
+
     pass
 
 
 # -------------evaluate---------------
-
-
 def pairwise_evaluate(correct_labels, pred_labels):
     TP = 0.0  # Pairs Correctly Predicted To SameAuthor
     TP_FP = 0.0  # Total Pairs Predicted To SameAuthor
@@ -141,16 +141,14 @@ def pairwise_evaluate(correct_labels, pred_labels):
             (pairwise_precision + pairwise_recall)
     return pairwise_precision, pairwise_recall, pairwise_f1
 
-# TODO: inverted document frequency
 
 # --------------get author and org features----------------
-
-
 def format_name(names):
     x = [k.strip() for k in names.lower().strip()]
     return x
 
 
+'''
 # -------------- graph preprocess ---------------
 def preprocess_graph(coo_node_list, n_node):
     coo_numpy = np.array(coo_node_list, dtype=np.int32)
@@ -171,65 +169,9 @@ def preprocess_graph(coo_node_list, n_node):
 
     # return sparse_to_tuple(adj_normalized)
     return sparse_mx_to_torch_sparse_tensor(adj_normalized), adj
+'''
 
-
-def precessname(name):
-    name = name.lower().replace(' ', '_')
-    name = name.replace('.', '_')
-    name = name.replace('-', '')
-    name = re.sub(r"_{2,}", "_", name)
-    return name
-
-
-def preprocessorg(org):
-    if org != "":
-        org = org.replace('Sch.', 'School')
-        org = org.replace('Dept.', 'Department')
-        org = org.replace('Coll.', 'College')
-        org = org.replace('Inst.', 'Institute')
-        org = org.replace('Univ.', 'University')
-        org = org.replace('Lab ', 'Laboratory ')
-        org = org.replace('Lab.', 'Laboratory')
-        org = org.replace('Natl.', 'National')
-        org = org.replace('Comp.', 'Computer')
-        org = org.replace('Sci.', 'Science')
-        org = org.replace('Tech.', 'Technology')
-        org = org.replace('Technol.', 'Technology')
-        org = org.replace('Elec.', 'Electronic')
-        org = org.replace('Engr.', 'Engineering')
-        org = org.replace('Aca.', 'Academy')
-        org = org.replace('Syst.', 'Systems')
-        org = org.replace('Eng.', 'Engineering')
-        org = org.replace('Res.', 'Research')
-        org = org.replace('Appl.', 'Applied')
-        org = org.replace('Chem.', 'Chemistry')
-        org = org.replace('Prep.', 'Petrochemical')
-        org = org.replace('Phys.', 'Physics')
-        org = org.replace('Phys.', 'Physics')
-        org = org.replace('Mech.', 'Mechanics')
-        org = org.replace('Mat.', 'Material')
-        org = org.replace('Cent.', 'Center')
-        org = org.replace('Ctr.', 'Center')
-        org = org.replace('Behav.', 'Behavior')
-        org = org.replace('Atom.', 'Atomic')
-        org = org.split(';')[0]
-    return org
-
-
-def coAuthorOrg_num(names1, names2):
-    name_count = 0
-    org_count = 0
-    for name1 in names1:
-        for name2 in names2:
-            if precessname(name1['name']) == precessname(name2['name']):
-                name_count += 1
-            if name1['org'] == '' or name2['org'] == '':
-                continue
-            if name1['org'] == name2['org']:
-                org_count += 1
-    return name_count, org_count
-
-
+'''
 def sparse_mx_to_torch_sparse_tensor(sparse_mx):
     """Convert a scipy sparse matrix to a torch sparse tensor."""
     sparse_mx = sparse_mx.tocoo().astype(np.float32)
@@ -238,6 +180,7 @@ def sparse_mx_to_torch_sparse_tensor(sparse_mx):
     values = torch.from_numpy(sparse_mx.data)
     shape = torch.Size(sparse_mx.shape)
     return torch.sparse.FloatTensor(indices, values, shape)
+'''
 
 
 def normalization(data):
@@ -246,17 +189,13 @@ def normalization(data):
 
 
 # ---------------- cos angle ------------------
-
-
 def cosangle(a, b):
     return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
 
 
-# ------------- mapping idx to paper id/ paper id to idx ----------
-
-
+# ------------- mapping paper id to idx ----------
 def graphMapping(graph, rfpath=cfg.VAL_AUTHOR_PATH):
-    pid2idx_dict_by_name = pid2idxMapping(rfpath=rfpath)
+    pid2idx_dict_by_name, _ = pid2idxMapping(rfpath=rfpath)
     for idx, name in enumerate(graph):
         pid2idx_dict = pid2idx_dict_by_name[name]
         for i, triplets in enumerate(graph[name]):
@@ -268,12 +207,29 @@ def graphMapping(graph, rfpath=cfg.VAL_AUTHOR_PATH):
 def pid2idxMapping(rfpath=cfg.VAL_AUTHOR_PATH):
     author_pubs_raw = load_json(rfpath=rfpath)
     pid2idx_dict_by_name = {}
+    names = []
     for i, name in enumerate(author_pubs_raw):
         pid2idx_dict = {}
+        names.append(name)
         for j, pid in enumerate(author_pubs_raw[name]):
             pid2idx_dict[pid] = j
         pid2idx_dict_by_name[name] = pid2idx_dict
-    return pid2idx_dict_by_name
+    return pid2idx_dict_by_name, names
+
+
+def read_embeddings(name, n_node, filename=cfg.VAL_PUB_FEATURES_PATH, n_embed=100):
+
+    embedding_matrix = np.random.rand(0, n_embed)
+
+    feats = load_pub_features(rfpath=filename)
+    author_pubs_raw = load_json(rfpath=cfg.VAL_AUTHOR_PATH)
+
+    for i, pid in enumerate(author_pubs_raw[name]):
+        embedding_matrix = np.append(embedding_matrix, np.reshape(
+            feats[pid], [1, n_embed]), axis=0)
+        # print(embedding_matrix.shape)
+
+    return embedding_matrix
 
 
 if __name__ == "__main__":
@@ -284,11 +240,10 @@ if __name__ == "__main__":
     # print(pubs_train)
     # print(pubs_val)
 
-    # -------- test dump_json ----------
-    '''
-    a = np.ones([2, 2])
-    b = {}
-    b['yes'] = a
-    dump_data(b, wfname='../test.txt')
-    '''
-    print(load_data('../test.txt'))
+    # -------- test ----------
+    # data = np.load('../results/gen/weiping_liu_gen.npy')
+    # print(data.shape)
+
+    # -------- test read embedding
+    m = read_embeddings('weiping_liu', 684)
+    print(m.shape)

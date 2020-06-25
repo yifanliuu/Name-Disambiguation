@@ -37,8 +37,28 @@ VAL_SIMI_RELATION_FOLDER = '../dataset/similarity/relation/val/'
 TRAIN_SIMI_RELATION_FOLDER = '../dataset/similarity/relation/train/'
 VAL_SIMI_RELATION_FOLDER = '../dataset/similarity/relation/val/'
 
-# generated graph
-TRAIN_GRAPH_PATH = '../dataset/graph/train_graph.json'
-VAL_GRAPH_PATH = '../dataset/graph/val_graph.json'
-
 TRIPLETS_PATH = '../dataset/triplets.txt'
+
+TRAIN_GRAPH_PATH = '../dataset/graph/train/'
+VAL_GRAPH_PATH = '../dataset/graph/val/'
+
+# HeGAN training hyperparameters
+
+batch_size = 32
+lambda_gen = 1e-5
+lambda_dis = 1e-5
+n_sample = 16
+lr_gen = 0.0001  # 1e-3
+lr_dis = 0.0001  # 1e-4
+n_epoch = 20
+saves_step = 10
+sig = 1.0
+label_smooth = 0.0
+d_epoch = 15
+g_epoch = 5
+n_emb = 100
+
+emb_filenames_gen = '../results/gen/'
+emb_filenames_dis = '../results/dis/'
+
+model_log = '../model_log/'
