@@ -1,4 +1,5 @@
-from models import SematicNN
+import math
+import config as cfg
 import torch
 import torch.nn.functional as F
 import torch.nn as nn
@@ -8,6 +9,18 @@ from utils import *
 import random
 # from preprocess import *
 
+class SematicNN(nn.Module):
+
+    def __init__(self):
+        super(SematicNN, self).__init__()
+        self.layer1 = nn.Sequential(nn.Linear(100, 128), nn.BatchNorm1d(128), nn.ReLU(True))
+        self.dropout = nn.Dropout(0.5)
+        self.layer2 = nn.Linear(128, 64) 
+    def forward(self, x):
+        x = self.layer1(x)
+        x = self.dropout(x)
+        x = self.layer2(x)
+        return x
 
 class SematicTrainer():
     def __init__(self, features, USE_CUDA=True, max_iter=200, lr=1e-3):
@@ -34,9 +47,6 @@ class SematicTrainer():
     def train(self):
         pass
 
-    def generate_embedding(self, Y, normed_A):
-        mu, _ = self.model.encoder(Y, normed_A)
-        return mu
 
     def gen_neg_pid(self, not_in_pids, all_pids):
         while True:
@@ -79,7 +89,11 @@ class SematicTrainer():
                             return
         save_triplets(triplets, cfg.TRIPLETS_PATH)
 
+    def load_triplets(self):
+        self.triplets = load_triplets(cfg.TRIPLETS_PATH)
 
 if __name__ == "__main__":
     trainer = SematicTrainer(load_pub_features(cfg.TRAIN_PUB_FEATURES_PATH))
-    trainer.generateTriplets()
+    # trainer.generateTriplets()
+    trainer.load_triplets()
+    print(trainer.triplets[1])

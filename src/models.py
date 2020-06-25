@@ -357,15 +357,3 @@ class AutoEncoder(nn.Module):
 
 
 '''
-class SematicNN(nn.Module):
-
-    def __init__(self):
-        super(SematicNN, self).__init__()
-        self.layer1 = nn.Sequential(nn.Linear(100, 128), nn.BatchNorm1d(128), nn.ReLU(True))
-        self.dropout = nn.Dropout(0.5)
-        self.layer2 = nn.Linear(128, 64) 
-    def forward(self, x):
-        x = self.layer1(x)
-        x = self.dropout(x)
-        x = self.layer2(x)
-        return x
