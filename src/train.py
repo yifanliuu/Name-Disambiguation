@@ -310,11 +310,10 @@ class Trainer():
 if __name__ == '__main__':
     pid2idx_by_name, names = pid2idxMapping()
     # generate graph by name
-    for i, name in enumerate(names):
-        # name = names[0]
-        n_node = len(pid2idx_by_name[name])
-        trainer = Trainer(name, n_node)
-        trainer.train()
+    name = names[0]
+    n_node = len(pid2idx_by_name[name])
+    trainer = Trainer(name, n_node)
+    trainer.train()
     # trainer.write_embeddings_to_file()
 
 '''

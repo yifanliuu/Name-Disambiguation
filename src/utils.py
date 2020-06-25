@@ -223,5 +223,5 @@ if __name__ == "__main__":
     # print(data.shape)
 
     # -------- test read embedding
-    m = read_embeddings('weiping_liu', 684)
-    print(m.shape)
+    # m = read_embeddings('weiping_liu', 684)
+    # print(m.shape)
