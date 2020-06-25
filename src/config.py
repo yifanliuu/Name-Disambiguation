@@ -37,7 +37,8 @@ VAL_SIMI_RELATION_FOLDER = '../dataset/similarity/relation/val/'
 TRAIN_SIMI_RELATION_FOLDER = '../dataset/similarity/relation/train/'
 VAL_SIMI_RELATION_FOLDER = '../dataset/similarity/relation/val/'
 
-# generated graph
+TRIPLETS_PATH = '../dataset/triplets.txt'
+
 TRAIN_GRAPH_PATH = '../dataset/graph/train/'
 VAL_GRAPH_PATH = '../dataset/graph/val/'
 

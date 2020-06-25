@@ -353,4 +353,7 @@ class AutoEncoder(nn.Module):
         # print(z)
         # exit(0)
         return self.decoder(z), mu, logvar
+
+
+
 '''
