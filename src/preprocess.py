@@ -604,13 +604,11 @@ if __name__ == "__main__":
 
     # ---------generateGraph test -------------------
     #
-    # pid2idx_by_name, names = pid2idxMapping()
-    # # generate graph by name
-    # for i, name in enumerate(names):
-    #     n_node, n_relation, graph = generateValGraph(
-    #         name,
-    #         pid2idx_by_name[name]
-    #     )
-    #     print(name, n_node, n_relation)
-
-    # cut_semetic_features_by_author()
+    pid2idx_by_name, names = pid2idxMapping()
+    # generate graph by name
+    for i, name in enumerate(names):
+        #    n_node, n_relation, graph = generateValGraph(
+        #        name,
+        #        pid2idx_by_name[name]
+        #    )
+        print(i, name, len(pid2idx_by_name[name]))
