@@ -49,12 +49,13 @@ class PaperCluster():
             sema_simi = np.load(simi_sema_folder + author + '.npy').reshape(l, l)
 
             rela_simi = np.load(simi_rela_folder + author + '.npy').reshape(l, l)
-            rela_simi[rela_simi==0] = 1 
-            rela_simi = 1 / rela_simi
-            # print(rela_simi)
+
             # print(sema_simi)
+            # print(rela_simi)
             # exit(0)
-            self.res[author] = self.dbscan_model.fit_predict(sema_simi + rela_simi)
+            # self.res[author] = self.dbscan_model.fit_predict(sema_simi)
+            # self.res[author] = self.dbscan_model.fit_predict(rela_simi)
+            self.res[author] = self.dbscan_model.fit_predict(0.3 * sema_simi + 1.0 * rela_simi)
             print(author,  l, np.sum(self.res[author] == -1), np.max(self.res[author]))
 
     def simple_relasimi(self, author_path, savepath):
@@ -184,5 +185,5 @@ class PaperCluster():
 if __name__ == "__main__":
     papercluster = PaperCluster(cfg.VAL_PUB_PATH)
     # papercluster.simple_relasimi(cfg.VAL_AUTHOR_PATH,cfg.VAL_SIMI_RELATION_FOLDER)
-    papercluster.dbscan(cfg.VAL_AUTHOR_PATH, cfg.VAL_SIMI_SENMATIC_FOLDER,cfg.VAL_SIMI_RELATION_FOLDER, eps=0.4, min_samples=4, data_labeled=0)
+    papercluster.dbscan(cfg.VAL_AUTHOR_PATH, cfg.VAL_SIMI_SENMATIC_FOLDER,cfg.VAL_SIMI_RELATION_FOLDER, eps=0.15, min_samples=4, data_labeled=0)
     papercluster.tranfer2file(cfg.VAL_RESULT_PATH)

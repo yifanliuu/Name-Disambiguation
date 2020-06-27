@@ -79,14 +79,15 @@ def save_pub_features(features, rfpath):
 
 def save_triplets(triplets, rfpath):
 
-    with open(rfpath, 'w') as rf:
-        count = 0
-        for triplet in triplets:
-            triplet = ' '.join(triplet) + '\n'
-            rf.write(triplet)
-            count += 1
-            if count % 10000 == 0:
-                print(str(count) + ' Done')
+    np.save(cfg.TRIPLETS_PATH, triplets)
+    # with open(rfpath, 'w') as rf:
+    #     count = 0
+    #     for triplet in triplets:
+    #         triplet = ' '.join(triplet) + '\n'
+    #         rf.write(triplet)
+    #         count += 1
+    #         if count % 10000 == 0:
+    #             print(str(count) + ' Done')
 
 
 def load_triplets(rfpath):
@@ -95,7 +96,7 @@ def load_triplets(rfpath):
         count = 0
         triplets = rf.readlines()
         for i in range(len(triplets)):
-            triplets[i] = triplets[i].strip.split(' ')
+            triplets[i] = triplets[i].strip().split(' ')
         return triplets
 
 

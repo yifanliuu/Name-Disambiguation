@@ -1,10 +1,10 @@
-from gensim.models.keyedvectors import KeyedVectors
+# from gensim.models.keyedvectors import KeyedVectors
 import config as cfg
 import numpy as np
 import string
 import re
 import logging
-from models import Word2Vec
+# from models import Word2Vec
 import multiprocessing
 import time
 from sklearn.metrics import pairwise_distances
@@ -401,25 +401,36 @@ def Cal_Simalarity_byAuthor_labeled(features_path, author_path, save_folder):
     print()
     print("TOTAL USING TIME(s): " + str(gtime_st-gtime_end))
 
+def cut_semetic_features_by_author(features_path=cfg.VAL_PUB_FEATURES_PATH, author_path=cfg.VAL_AUTHOR_PATH, save_folder=cfg.VAL_SEMATIC_FEATURES_PATH):
+    features = load_pub_features(features_path)
+    paper_by_author = load_json(author_path)
+    # paper_by_author_labeled = load_json(author_path)
+    # paper_by_author = dict()
+    # for author, labeled_paper in paper_by_author_labeled.items():
+    #     paper_by_author[author] = []
+    #     for label, papers in labeled_paper.items():
+    #         paper_by_author[author] += papers
+    for author, papers in paper_by_author.items():
+        feature_byAuthor = np.zeros([len(papers), 100])
+        for i in range(len(papers)):
+            feature_byAuthor[i] = features[papers[i]]
+        np.save(save_folder+author + '.npy', feature_byAuthor)
+
 
 def Cal_Simalarity_byAuthor_unlabeled(features_path, author_path, save_folder):
     gtime_st = time.time()
-    features = load_pub_features(features_path)
+    # features = load_pub_features(features_path)
     paper_by_author = load_json(author_path)
 
     simi_matrix = []
-    p = multiprocessing.Pool(4)
+    # p = multiprocessing.Pool(4)
     # print(len(paper_by_author))
     for author, papers in paper_by_author.items():
         # print(len(papers))
         time_start = time.time()
         l = len(papers)
-
-        x = []
-        for paper in papers:
-            x.append(features[paper])
-        x = np.array(x)
-        res = pairwise_distances(x, metric='cosine', n_jobs=-1)
+        features = np.load(features_path + author + '_gen.npy')
+        res = pairwise_distances(features, metric='cosine', n_jobs=-1)
         # size = l * l
         # simi_matrix = np.zeros(size)
         # jobs_param = []
@@ -431,12 +442,11 @@ def Cal_Simalarity_byAuthor_unlabeled(features_path, author_path, save_folder):
         # res = p.map(cal_simi_thread, jobs_param)
         # write similarity matrices to file
         np.save(save_folder + author + '.npy', np.array(res))
-        print(res.shape)
         time_end = time.time()
         print("calculate " + author + " done, using time(s): " +
               str(time_end-time_start))
     gtime_end = time.time()
-    print("TOTAL USING TIME(s): " + str(gtime_st-gtime_end))
+    print("TOTAL USING TIME(s): " + str(gtime_end-gtime_st))
 
 
 def generate_wordembedding():
@@ -573,8 +583,8 @@ if __name__ == "__main__":
     # ---------Cal_Simalarity_byAuthor test------------
 
     # Cal_Simalarity_byAuthor_labeled(cfg.TRAIN_PUB_FEATURES_PATH, cfg.TRAIN_AUTHOR_PATH, cfg.SIMI_SENMATIC_FOLDER)
-    # Cal_Simalarity_byAuthor_unlabeled(
-    #    cfg.VAL_PUB_FEATURES_PATH, cfg.VAL_AUTHOR_PATH, cfg.VAL_SIMI_SENMATIC_FOLDER)
+    Cal_Simalarity_byAuthor_unlabeled(
+       cfg.VAL_RELATION_FEATURES_PATH_GEN, cfg.VAL_AUTHOR_PATH, cfg.VAL_SIMI_RELATION_FOLDER)
 
     # ---------generate_wordembedding test------------
     # generate_wordembedding()
@@ -594,11 +604,13 @@ if __name__ == "__main__":
 
     # ---------generateGraph test -------------------
     #
-    pid2idx_by_name, names = pid2idxMapping()
-    # generate graph by name
-    for i, name in enumerate(names):
-        n_node, n_relation, graph = generateValGraph(
-            name,
-            pid2idx_by_name[name]
-        )
-        print(name, n_node, n_relation)
+    # pid2idx_by_name, names = pid2idxMapping()
+    # # generate graph by name
+    # for i, name in enumerate(names):
+    #     n_node, n_relation, graph = generateValGraph(
+    #         name,
+    #         pid2idx_by_name[name]
+    #     )
+    #     print(name, n_node, n_relation)
+
+    # cut_semetic_features_by_author()

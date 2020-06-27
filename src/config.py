@@ -26,7 +26,6 @@ VAL_PUB_FEATURES_PATH = '../dataset/features/val_pub_features.txt'
 VAL_SEMATIC_FEATURES_PATH = '../dataset/features/val/sematic/'
 
 TRAIN_RELATION_FEATURES_PATH = '../dataset/features/train_relation_features.txt'
-VAL_RELATION_FEATURES_PATH = '../dataset/features/val_relation_features.txt'
 
 # similary of features by Author
 TRAIN_SIMI_SENMATIC_FOLDER = '../dataset/similarity/sematic/train/'
@@ -37,7 +36,8 @@ VAL_SIMI_RELATION_FOLDER = '../dataset/similarity/relation/val/'
 TRAIN_SIMI_RELATION_FOLDER = '../dataset/similarity/relation/train/'
 VAL_SIMI_RELATION_FOLDER = '../dataset/similarity/relation/val/'
 
-TRIPLETS_PATH = '../dataset/triplets.txt'
+
+TRIPLETS_PATH = '../dataset/triplets/'
 
 TRAIN_GRAPH_PATH = '../dataset/graph/train/'
 VAL_GRAPH_PATH = '../dataset/graph/val/'
@@ -62,3 +62,9 @@ emb_filenames_gen = '../results/gen/'
 emb_filenames_dis = '../results/dis/'
 
 model_log = '../model_log/'
+
+SEMATIC_MODEL_PATH = '../model/sematic_model.pkl'
+TRAIN_SEMATIC_FEATURES_PATH = '../dataset/features/train/sematic/'
+VAL_SEMATIC_FEATURES_PATH_64 = '../dataset/features/val/sematic64/'
+VAL_RELATION_FEATURES_PATH_DIS = '../dataset/features/val/val_dis/'
+VAL_RELATION_FEATURES_PATH_GEN = '../dataset/features/val/val_gen/'
