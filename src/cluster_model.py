@@ -1,14 +1,18 @@
-
-# TODO: implement a simple clustering model
-
 from utils import *
 import config as cfg
 from sklearn.cluster import DBSCAN
 import string
+from matplotlib import pyplot as plt
 
 del_str = string.punctuation
 replace_str = ' '*len(del_str)
 transTab = str.maketrans(del_str, replace_str)
+
+
+def standardization(data):
+    mu = np.mean(data)
+    sigma = np.std(data)
+    return (data - mu) / sigma
 
 class PaperCluster():
 
@@ -31,6 +35,7 @@ class PaperCluster():
             self.paperInfo[key]['orgs'] = orgs
 
     def dbscan(self, author_path, simi_sema_folder, simi_rela_folder, eps, min_samples,data_labeled):
+
         self.dbscan_model = DBSCAN(eps=eps, min_samples = min_samples,metric ="precomputed")
         self.paper_by_author = dict()
 
@@ -45,30 +50,36 @@ class PaperCluster():
         
         print("Auhtor PaperNum LonelyMountain ClusterNum")
         for author, papers in self.paper_by_author.items():
+            if author != 'xu_shen':
+                continue
             l = len(papers)
             sema_simi = np.load(simi_sema_folder + author + '.npy').reshape(l, l)
 
             rela_simi = np.load(simi_rela_folder + author + '.npy').reshape(l, l)
 
-            # print(sema_simi)
-            # print(rela_simi)
-            # exit(0)
+            # --- normalization ---
+            # sema_simi = (sema_simi-sema_simi.min()) / (sema_simi.max() - sema_simi.min())
+            # rela_simi = (rela_simi-rela_simi.min()) / (rela_simi.max() - rela_simi.min())
+            
+            # --- standardizaiton ---
+            sema_simi = standardization(sema_simi)
+            rela_simi = standardization(rela_simi)
+            rela_simi = rela_simi - rela_simi.min()
+            sema_simi = sema_simi - sema_simi.min()
+
+            # --- experiment for the single feature result ---
             # self.res[author] = self.dbscan_model.fit_predict(sema_simi)
             # self.res[author] = self.dbscan_model.fit_predict(rela_simi)
-            self.res[author] = self.dbscan_model.fit_predict(0.3 * sema_simi + 1.0 * rela_simi)
+
+            self.res[author] = self.dbscan_model.fit_predict(0.5 * sema_simi + 1.5 * rela_simi)
             print(author,  l, np.sum(self.res[author] == -1), np.max(self.res[author]))
+        
+        #  --- Visualization experiment code here ---
+        # res = self.res['xu_shen']
+        # label = np.load('../dataset/exp.npy')
+        # self.plot_embedding_2d(label,res)
 
-    def simple_relasimi(self, author_path, savepath):
-        self.paper_by_author = load_json(author_path)
-
-        for author, papers in self.paper_by_author.items():
-            l = len(papers)
-            simi = np.zeros(l * l).reshape(l, l)
-            for i, paperi in enumerate(papers):
-                for j, paperj in enumerate(papers):
-                    simi[i, j] = self.cal_relasimi(paperi, paperj)
-            np.save(savepath + author + '.npy', simi)
-
+# Do outlier allocation and save cluster reslut in valid_res.json
     def tranfer2file(self, savepath):
         resdict = {}
         
@@ -79,6 +90,8 @@ class PaperCluster():
             # exit(0)
 
             # TODO: l is temporary +2, we simply classify outliers into one group
+            if author != 'xu_shen':
+                continue
             l = np.max((self.res[author])) + 2
             resdict[author] = []
             for i in range(l):
@@ -87,6 +100,19 @@ class PaperCluster():
                 resdict[author][self.res[author][i]].append(papers[i])
             resdict[author] = self.recover_lonelymountain(resdict[author], 1.5)
             print(author, len(resdict[author]), len(self.paper_by_author[author])/len(resdict[author]))
+
+        res = resdict['xu_shen']
+        label = np.load('../dataset/exp.npy')
+        resarr = np.zeros(len(label), dtype=int)
+        j = 0
+        i = 0
+        for aid in res:
+            for paper in aid:
+                resarr[i] = j
+                i += 1
+            j += 1
+
+        self.plot_embedding_2d(label,resarr)
 
         dump_json(resdict, savepath, indent =4)
 
@@ -106,23 +132,6 @@ class PaperCluster():
                 c += 1
         return c
 
-    def cal_relasimi(self, paperA, paperB):
-        paperAInfo = self.paperInfo[paperA]
-        paperBInfo = self.paperInfo[paperB]
-        
-        # authros
-        a = self.same_count(paperAInfo['authors'], paperBInfo['authors'])
-
-        # orgs
-        o = self.same_org_count(paperAInfo['orgs'], paperBInfo['orgs'])
-
-        # print(t, a, v, o)
-        # if a == 0:
-        #     print(paperAInfo['authors'], paperBInfo['authors'])
-        #     exit(0)
-
-        return a + o
-
     def calsimi_lonelymountain(self, paperA, paperB):
         paperAInfo = self.paperInfo[paperA]
         paperBInfo = self.paperInfo[paperB]
@@ -139,13 +148,9 @@ class PaperCluster():
         # orgs
         o = self.same_org_count(paperAInfo['orgs'], paperBInfo['orgs'])
 
-        # print(t, a, v, o)
-        # if a == 0:
-        #     print(paperAInfo['authors'], paperBInfo['authors'])
-        #     exit(0)
-
         return t / 3.0 + a * 1.5 + v + o
 
+# Outliers Allocation function here, we just call it recover lonelymountain.
     def recover_lonelymountain(self, paperclasses, eps):
         c = 0
         if len(paperclasses) == 0:
@@ -164,14 +169,9 @@ class PaperCluster():
                 for paper in papercluster:
                     sim += self.calsimi_lonelymountain(lonelymountain, paper)
                 dis[i] = sim / l
-            # print(dis)
-            # exit(0)
             maxdis = np.max(dis)
-            if maxdis >= eps:
+            if maxdis > eps:
                 idx = np.argwhere(dis == maxdis)
-                # print(int(idx))
-                # exit(0)
-                # try:
                 if (len(idx) == 1):
                     paperclusters[int(idx[0])].append(lonelymountain)
                 else:
@@ -181,9 +181,30 @@ class PaperCluster():
                 paperclusters.append([lonelymountain])
         return paperclusters
 
+    def plot_embedding_2d(self, X, target, title=None):
+        #坐标缩放到[0,1]区间
+        x_min, x_max = np.min(X,axis=0), np.max(X,axis=0)
+        X = (X - x_min) / (x_max - x_min)
+        ax = plt.subplot()
+        for i in range(X.shape[0]):
+            ax.text(X[i, 0], X[i, 1], str(target[i]),
+            color=plt.cm.Set1(target[i] / 10.),
+            fontdict={'weight': 'bold', 'size': 9})
+        # ax.scatter(x, y, z)
+        if title is not None:
+            plt.title(title)
+        plt.show()
+
+        
 
 if __name__ == "__main__":
-    papercluster = PaperCluster(cfg.VAL_PUB_PATH)
-    # papercluster.simple_relasimi(cfg.VAL_AUTHOR_PATH,cfg.VAL_SIMI_RELATION_FOLDER)
-    papercluster.dbscan(cfg.VAL_AUTHOR_PATH, cfg.VAL_SIMI_SENMATIC_FOLDER,cfg.VAL_SIMI_RELATION_FOLDER, eps=0.15, min_samples=4, data_labeled=0)
-    papercluster.tranfer2file(cfg.VAL_RESULT_PATH)
+
+    # --- CLUSTER on the training set ---
+    # papercluster = PaperCluster(cfg.VAL_PUB_PATH)
+    # papercluster.dbscan(cfg.VAL_AUTHOR_PATH, cfg.VAL_SIMI_SENMATIC_FOLDER,cfg.VAL_SIMI_RELATION_FOLDER, eps=0.15, min_samples=4, data_labeled=0)
+    # papercluster.tranfer2file(cfg.VAL_RESULT_PATH)
+
+    # --- CLUSTER on the validate set ---
+    papercluster = PaperCluster(cfg.TRAIN_PUB_PATH)
+    papercluster.dbscan('../dataset/exp.json', cfg.TRAIN_SIMI_SENMATIC_FOLDER,cfg.TRAIN_SIMI_RELATION_FOLDER, eps=1.4, min_samples=4, data_labeled=1)
+    papercluster.tranfer2file(cfg.TRAIN_RESULT_PATH)

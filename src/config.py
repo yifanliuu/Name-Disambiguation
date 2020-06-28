@@ -21,21 +21,23 @@ STOP_WORDS_PATH = '../dataset/stop_words.txt'
 
 # feature files
 TRAIN_PUB_FEATURES_PATH = '../dataset/features/train_pub_features.txt'
+TRAIN_SEMANTIC_FEATURES_PATH = '../dataset/features/train/semantic/'
+TRAIN_SEMANTIC_FEATURES_PATH_64 = '../dataset/features/train/semantic64/'
+TRAIN_RELATION_FEATURES_PATH = '../dataset/features/train/relation/'
+
 VAL_PUB_FEATURES_PATH = '../dataset/features/val_pub_features.txt'
+VAL_SEMANTIC_FEATURES_PATH = '../dataset/features/val/semantic/'
+VAL_SEMANTIC_FEATURES_PATH_64 = '../dataset/features/val/semantic64/'
+VAL_RELATION_FEATURES_PATH_DIS = '../dataset/features/val/val_dis/'
+VAL_RELATION_FEATURES_PATH_GEN = '../dataset/features/val/val_gen/'
 
-VAL_SEMATIC_FEATURES_PATH = '../dataset/features/val/sematic/'
-
-TRAIN_RELATION_FEATURES_PATH = '../dataset/features/train_relation_features.txt'
-
-# similary of features by Author
-TRAIN_SIMI_SENMATIC_FOLDER = '../dataset/similarity/sematic/train/'
-VAL_SIMI_SENMATIC_FOLDER = '../dataset/similarity/sematic/val/'
-VAL_SIMI_RELATION_FOLDER = '../dataset/similarity/relation/val/'
+# similary of semantic features by Author
+TRAIN_SIMI_SENMATIC_FOLDER = '../dataset/similarity/semantic/train/'
+VAL_SIMI_SENMATIC_FOLDER = '../dataset/similarity/semantic/val/'
 
 # similary of relation features by Author
 TRAIN_SIMI_RELATION_FOLDER = '../dataset/similarity/relation/train/'
 VAL_SIMI_RELATION_FOLDER = '../dataset/similarity/relation/val/'
-
 
 TRIPLETS_PATH = '../dataset/triplets/'
 
@@ -57,14 +59,10 @@ label_smooth = 0.0
 d_epoch = 15
 g_epoch = 5
 n_emb = 100
-
 emb_filenames_gen = '../results/gen/'
 emb_filenames_dis = '../results/dis/'
 
 model_log = '../model_log/'
 
-SEMATIC_MODEL_PATH = '../model/sematic_model.pkl'
-TRAIN_SEMATIC_FEATURES_PATH = '../dataset/features/train/sematic/'
-VAL_SEMATIC_FEATURES_PATH_64 = '../dataset/features/val/sematic64/'
-VAL_RELATION_FEATURES_PATH_DIS = '../dataset/features/val/val_dis/'
-VAL_RELATION_FEATURES_PATH_GEN = '../dataset/features/val/val_gen/'
+# model path
+SEMANTIC_MODEL_PATH = '../model/semantic_model.pkl'

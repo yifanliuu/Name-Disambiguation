@@ -161,14 +161,17 @@ def generateRawFeatrues(mode='train'):
     # embeddings, each one 100 dimension
     word_embedding = Word2Vec()
     word_embedding.load()
+
     # print(word_embedding['optimization'])
     # print(type(word_embedding['optimization']))
     # print(word_embedding['optimization'].size)
 
-    sementic_features = {}
+    semantic_features = {}
 
     count = 0
     for paperId, paperDetail in pubs_raw.items():
+    
+    # NOTE: Extract semantic infomation here.
         title = paperDetail['title']
         abstract = paperDetail['abstract']
         key_words = paperDetail.get("keywords")
@@ -209,6 +212,7 @@ def generateRawFeatrues(mode='train'):
         paper_embedding = np.zeros(EMBEDDING_SIZE)
         l = len(paper_embedding_words)
 
+    # Sum all words' embedding together as paper_embedding
         for i, word in enumerate(paper_embedding_words):
             try:
                 paper_embedding = paper_embedding + word_embedding.model[word]
@@ -216,12 +220,12 @@ def generateRawFeatrues(mode='train'):
                 l = l - 1
 
         paper_embedding = paper_embedding / l
-        sementic_features[paperId] = paper_embedding.copy()
+        semantic_features[paperId] = paper_embedding.copy()
         count += 1
         if count % 1000 == 0:
             print(str(count) + ' Done')
 
-    # print(sementic_features['cFtStBA6'])
+    # print(semantic_features['cFtStBA6'])
     # print(relation_features['cFtStBA6'])
 
     print('Wrting features to file......')
@@ -229,9 +233,9 @@ def generateRawFeatrues(mode='train'):
         rfpath = cfg.TRAIN_PUB_FEATURES_PATH
     elif mode == "val":
         rfpath = cfg.VAL_PUB_FEATURES_PATH
-    save_pub_features(sementic_features, rfpath)
+    save_pub_features(semantic_features, rfpath)
 
-    return sementic_features
+    return semantic_features
 
 
 def save_relation(paper_list, pubs_raw, name):
@@ -358,9 +362,10 @@ def cal_simi_thread(param):
     return cosangle(param[0], param[1])
 
 
+# train_author.json are labeled file, which should use this function
 def Cal_Simalarity_byAuthor_labeled(features_path, author_path, save_folder):
     gtime_st = time.time()
-    features = load_pub_features(features_path)
+    # features = load_pub_features(features_path)
     paper_by_author_labeled = load_json(author_path)
     paper_by_author = dict()
     for author, labeled_paper in paper_by_author_labeled.items():
@@ -368,79 +373,46 @@ def Cal_Simalarity_byAuthor_labeled(features_path, author_path, save_folder):
         for label, papers in labeled_paper.items():
             paper_by_author[author] += papers
 
+
     simi_matrix = []
-    p = multiprocessing.Pool(4)
-    # print(len(paper_by_author))
     for author, papers in paper_by_author.items():
         # print(len(papers))
+        # if author != 'xu_shen':
+            # continue
         time_start = time.time()
         l = len(papers)
-
-        x = []
-        for paper in papers:
-            x.append(features[paper])
-        x = np.array(x)
-        res = pairwise_distances(x, metric='cosine', n_jobs=-1)
-
-        # size = l * l
-        # simi_matrix = np.zeros(size)
-        # jobs_param = []
-        # for index in range(size):
-        #     i = int(index / l)
-        #     j = index % l
-        #     jobs_param.append([features[papers[i]], features[papers[j]]])
-        # # print("start calculate")
-        # res = p.map(cal_simi_thread, jobs_param)
-    # write similarity matrices to file
-
+        features = np.load(features_path + author + '.npy')
+        res = pairwise_distances(features, metric='cosine', n_jobs=-1)
         np.save(save_folder + author + '.npy', np.array(res))
         time_end = time.time()
         print("calculate " + author + " done, using time(s): " +
               str(time_end-time_start))
     gtime_end = time.time()
-    print()
-    print("TOTAL USING TIME(s): " + str(gtime_st-gtime_end))
+    print("TOTAL USING TIME(s): " + str(gtime_end-gtime_st))
 
-def cut_semetic_features_by_author(features_path=cfg.VAL_PUB_FEATURES_PATH, author_path=cfg.VAL_AUTHOR_PATH, save_folder=cfg.VAL_SEMATIC_FEATURES_PATH):
+# Transform semantic features from arrangement by paper to arrangement by author
+def cut_semantic_features_by_author(features_path=cfg.VAL_PUB_FEATURES_PATH, author_path=cfg.VAL_AUTHOR_PATH, save_folder=cfg.VAL_SEMANTIC_FEATURES_PATH):
     features = load_pub_features(features_path)
     paper_by_author = load_json(author_path)
-    # paper_by_author_labeled = load_json(author_path)
-    # paper_by_author = dict()
-    # for author, labeled_paper in paper_by_author_labeled.items():
-    #     paper_by_author[author] = []
-    #     for label, papers in labeled_paper.items():
-    #         paper_by_author[author] += papers
     for author, papers in paper_by_author.items():
         feature_byAuthor = np.zeros([len(papers), 100])
         for i in range(len(papers)):
             feature_byAuthor[i] = features[papers[i]]
         np.save(save_folder+author + '.npy', feature_byAuthor)
 
-
+# sna_valid_author_raw.json are unlabeled file, which should use this function
 def Cal_Simalarity_byAuthor_unlabeled(features_path, author_path, save_folder):
     gtime_st = time.time()
     # features = load_pub_features(features_path)
     paper_by_author = load_json(author_path)
 
     simi_matrix = []
-    # p = multiprocessing.Pool(4)
-    # print(len(paper_by_author))
     for author, papers in paper_by_author.items():
         # print(len(papers))
         time_start = time.time()
         l = len(papers)
-        features = np.load(features_path + author + '_gen.npy')
-        res = pairwise_distances(features, metric='cosine', n_jobs=-1)
-        # size = l * l
-        # simi_matrix = np.zeros(size)
-        # jobs_param = []
-        # for index in range(size):
-        #     i = int(index / l)
-        #     j = index % l
-        #     jobs_param.append([features[papers[i]], features[papers[j]]])
-        # # print("start calculate")
-        # res = p.map(cal_simi_thread, jobs_param)
-        # write similarity matrices to file
+        features = np.load(features_path + author + '.npy')
+        res = pairwise_distances(features, metric='euclidean', n_jobs=-1)
         np.save(save_folder + author + '.npy', np.array(res))
         time_end = time.time()
         print("calculate " + author + " done, using time(s): " +
@@ -581,10 +553,9 @@ if __name__ == "__main__":
     # generateCorpus()
 
     # ---------Cal_Simalarity_byAuthor test------------
-
-    # Cal_Simalarity_byAuthor_labeled(cfg.TRAIN_PUB_FEATURES_PATH, cfg.TRAIN_AUTHOR_PATH, cfg.SIMI_SENMATIC_FOLDER)
-    Cal_Simalarity_byAuthor_unlabeled(
-       cfg.VAL_RELATION_FEATURES_PATH_GEN, cfg.VAL_AUTHOR_PATH, cfg.VAL_SIMI_RELATION_FOLDER)
+    # Cal_Simalarity_byAuthor_labeled(cfg.TRAIN_RELATION_FEATURES_PATH, cfg.TRAIN_AUTHOR_PATH, cfg.TRAIN_SIMI_RELATION_FOLDER)
+    # Cal_Simalarity_byAuthor_unlabeled(
+    #    cfg.VAL_SEMANTIC_FEATURES_PATH_64, cfg.VAL_AUTHOR_PATH, cfg.VAL_SIMI_SENMATIC_FOLDER)
 
     # ---------generate_wordembedding test------------
     # generate_wordembedding()
@@ -604,11 +575,11 @@ if __name__ == "__main__":
 
     # ---------generateGraph test -------------------
     #
-    pid2idx_by_name, names = pid2idxMapping()
-    # generate graph by name
-    for i, name in enumerate(names):
-        #    n_node, n_relation, graph = generateValGraph(
-        #        name,
-        #        pid2idx_by_name[name]
-        #    )
-        print(i, name, len(pid2idx_by_name[name]))
+    # pid2idx_by_name, names = pid2idxMapping()
+    # # generate graph by name
+    # for i, name in enumerate(names):
+    #     #    n_node, n_relation, graph = generateValGraph(
+    #     #        name,
+    #     #        pid2idx_by_name[name]
+    #     #    )
+    #     print(i, name, len(pid2idx_by_name[name]))

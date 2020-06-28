@@ -78,16 +78,7 @@ def save_pub_features(features, rfpath):
                 print(str(count) + ' Done')
 
 def save_triplets(triplets, rfpath):
-
     np.save(cfg.TRIPLETS_PATH, triplets)
-    # with open(rfpath, 'w') as rf:
-    #     count = 0
-    #     for triplet in triplets:
-    #         triplet = ' '.join(triplet) + '\n'
-    #         rf.write(triplet)
-    #         count += 1
-    #         if count % 10000 == 0:
-    #             print(str(count) + ' Done')
 
 
 def load_triplets(rfpath):
@@ -99,21 +90,6 @@ def load_triplets(rfpath):
             triplets[i] = triplets[i].strip().split(' ')
         return triplets
 
-
- # Using this path: VAL_SEMATIC_FEATURES_PATH to save features by name
-
-
-def save_sematic_features_byAuthor(features, rfpath=cfg.VAL_SEMATIC_FEATURES_PATH):
-
-    # Assume we have 4 papers named paper1 - paper4, so features will be like below.
-    # features = {
-    #     'papaer1': 'feature1'(np.array)
-    #     'papaer2': 'feature2'(np.array)
-    #     'papaer3': 'feature3'(np.array)
-    #     'papaer4': 'feature4'(np.array)
-    # }
-
-    pass
 
 
 # -------------evaluate---------------
@@ -234,7 +210,9 @@ def read_embeddings(name, n_node, filename=cfg.VAL_PUB_FEATURES_PATH, n_embed=10
 
 
 if __name__ == "__main__":
+    
     pass
+
     # --------load json test-----------
     # pubs_train = load_json(cfg.TRAIN_PUB_PATH)
     # pubs_val = load_json(cfg.VAL_PUB_PATH)
