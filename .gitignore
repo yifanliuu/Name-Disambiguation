@@ -7,4 +7,5 @@ push.sh
 query.sh
 model
 model_log
+log
 results

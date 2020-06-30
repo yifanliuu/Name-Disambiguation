@@ -77,6 +77,7 @@ def save_pub_features(features, rfpath):
             if count % 10000 == 0:
                 print(str(count) + ' Done')
 
+
 def save_triplets(triplets, rfpath):
 
     with open(rfpath, 'w') as rf:
@@ -97,7 +98,6 @@ def load_triplets(rfpath):
         for i in range(len(triplets)):
             triplets[i] = triplets[i].strip.split(' ')
         return triplets
-
 
  # Using this path: VAL_SEMATIC_FEATURES_PATH to save features by name
 
@@ -204,7 +204,7 @@ def graphMapping(graph, rfpath=cfg.VAL_AUTHOR_PATH):
     return graph
 
 
-def pid2idxMapping(rfpath=cfg.VAL_AUTHOR_PATH):
+def pid2idxMappingVal(rfpath=cfg.VAL_AUTHOR_PATH):
     author_pubs_raw = load_json(rfpath=rfpath)
     pid2idx_dict_by_name = {}
     names = []
@@ -217,12 +217,33 @@ def pid2idxMapping(rfpath=cfg.VAL_AUTHOR_PATH):
     return pid2idx_dict_by_name, names
 
 
-def read_embeddings(name, n_node, filename=cfg.VAL_PUB_FEATURES_PATH, n_embed=100):
+def pid2idxMappingTrain(rfpath=cfg.TRAIN_AUTHOR_PATH):
+    author_pubs_raw = load_json(rfpath=rfpath)
+    pid2idx_dict_by_name = {}
+    names = []
+    for i, name in enumerate(author_pubs_raw):
+        pid2idx_dict = {}
+        names.append(name)
+        m = 0
+        for j, iden in enumerate(author_pubs_raw[name]):
+            for k, pid in enumerate(author_pubs_raw[name][iden]):
+                pid2idx_dict[pid] = m
+                m += 1
+        print(name, m)
+        pid2idx_dict_by_name[name] = pid2idx_dict
+    return pid2idx_dict_by_name, names
+
+
+def read_embeddings(name, n_node, rfpath=cfg.VAL_AUTHOR_PATH, filename=cfg.VAL_PUB_FEATURES_PATH, n_embed=100):
+
+    if filename != cfg.VAL_PUB_FEATURES_PATH:
+        embedding_matrix = np.load(filename)
+        assert(embedding_matrix.shape == (n_node, n_embed))
+        return embedding_matrix
 
     embedding_matrix = np.random.rand(0, n_embed)
-
     feats = load_pub_features(rfpath=filename)
-    author_pubs_raw = load_json(rfpath=cfg.VAL_AUTHOR_PATH)
+    author_pubs_raw = load_json(rfpath=rfpath)
 
     for i, pid in enumerate(author_pubs_raw[name]):
         embedding_matrix = np.append(embedding_matrix, np.reshape(
@@ -245,5 +266,14 @@ if __name__ == "__main__":
     # print(data.shape)
 
     # -------- test read embedding
-    # m = read_embeddings('weiping_liu', 684)
+    # m = read_embeddings('xu_shen', 353, rfpath=cfg.TRAIN_AUTHOR_PATH,
+    #                    filename=cfg.TRAIN_PUB_FEATURES_PATH)
     # print(m.shape)
+
+    plt.figure(figsize=(8, 8))
+    for i in range(X_norm.shape[0]):
+        plt.text(X_norm[i, 0], X_norm[i, 1], str(pred_Y[i]), color=plt.cm.Set1(pred_Y[i]),
+                 fontdict={'weight': 'bold', 'size': 9})
+    plt.xticks([])
+    plt.yticks([])
+    plt.show()

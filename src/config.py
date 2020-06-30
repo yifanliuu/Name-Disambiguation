@@ -61,4 +61,4 @@ n_emb = 100
 emb_filenames_gen = '../results/gen/'
 emb_filenames_dis = '../results/dis/'
 
-model_log = '../model_log/'
+model_log = '../log/'

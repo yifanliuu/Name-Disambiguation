@@ -113,7 +113,7 @@ def generateCandidateSets(mode='train'):
                 labels.append(i_label)
             i_label += 1
 
-        # print(n, name, len(pubs))
+        print(n, name, len(pubs), len(authors[name]))
         pubs_by_name[name] = pubs
         labels_by_name[name] = labels
 
@@ -140,7 +140,7 @@ def generateCandidateSetsTest():
 # --------------load pubs.json and generate raw features---------------
 
 
-def generateRawFeatrues(mode='train'):
+def generateRawFeatrues(papers, name,  mode='train'):
     '''
     mode: 'train' or 'val' or 'test'
     '''
@@ -168,7 +168,10 @@ def generateRawFeatrues(mode='train'):
     sementic_features = {}
 
     count = 0
+    print(len(papers))
     for paperId, paperDetail in pubs_raw.items():
+        if paperId not in papers:
+            continue
         title = paperDetail['title']
         abstract = paperDetail['abstract']
         key_words = paperDetail.get("keywords")
@@ -225,10 +228,13 @@ def generateRawFeatrues(mode='train'):
     # print(relation_features['cFtStBA6'])
 
     print('Wrting features to file......')
+    '''
     if mode == "train":
         rfpath = cfg.TRAIN_PUB_FEATURES_PATH
     elif mode == "val":
         rfpath = cfg.VAL_PUB_FEATURES_PATH
+    '''
+    rfpath = '../dataset/features/test/features_'+name+'.txt'
     save_pub_features(sementic_features, rfpath)
 
     return sementic_features
@@ -594,11 +600,31 @@ if __name__ == "__main__":
 
     # ---------generateGraph test -------------------
     #
-    pid2idx_by_name, names = pid2idxMapping()
+    # pid2idx_by_name, names = pid2idxMappingVal()
     # generate graph by name
-    for i, name in enumerate(names):
-        #    n_node, n_relation, graph = generateValGraph(
-        #        name,
-        #        pid2idx_by_name[name]
-        #    )
-        print(i, name, len(pid2idx_by_name[name]))
+    # for i, name in enumerate(names):
+    #        n_node, n_relation, graph = generateValGraph(
+    #            name,
+    #            pid2idx_by_name[name]
+    #        )
+    #    print(i, name, n_node)
+
+    # --------- validation set and label generate
+    labels_by_name, pubs_by_name = generateCandidateSets()
+    name = 'xu_shen'
+    pid2idx_by_name, names = pid2idxMappingTrain()
+    pubs_raw = load_json(cfg.TRAIN_PUB_PATH)
+    print(pid2idx_by_name[name])
+
+    with open('../dataset/labels/evaluate/paper_label.dat', 'w', encoding='utf-8') as f:
+        for i, label in enumerate(labels_by_name[name]):
+            f.write(str(
+                pid2idx_by_name[name][pubs_by_name[name][i]])+'\t' + str(label) + '\n')
+
+    save_relation(pubs_by_name[name], pubs_raw=pubs_raw, name=name)
+    n_node, n_relation, graph = generateValGraph(
+        name,
+        pid2idx_by_name[name]
+    )
+    # ----------------- generate initial embedding ---------------
+    generateRawFeatrues(pubs_by_name[name], name=name)

@@ -44,7 +44,7 @@ class AutoEncoderTrainer():
             self.model.train()
             self.optimizer.zero_grad()
             recovered, mu, logvar = self.model(Y, normed_A)
-            #print(recovered, mu, logvar)
+            # print(recovered, mu, logvar)
             loss = self.loss_function(
                 preds=recovered,
                 labels=labels_A,
@@ -66,7 +66,7 @@ class AutoEncoderTrainer():
 
 
 class Trainer():
-    def __init__(self, name, n_node):
+    def __init__(self, name, n_node, author_file=cfg.VAL_AUTHOR_PATH, feature_file=cfg.VAL_PUB_FEATURES_PATH):
         t = time.time()
         print('reading graph...')
         self.name = name
@@ -82,6 +82,8 @@ class Trainer():
         print('read initial embeddings...')
         self.node_embed_init_d = read_embeddings(name=self.name,
                                                  n_node=self.n_node,
+                                                 rfpath=author_file,
+                                                 filename=feature_file,
                                                  n_embed=cfg.n_emb)
         self.node_embed_init_g = self.node_embed_init_d
         print('[%.2f] read initial embeddings finished.' % (time.time() - t))
@@ -103,6 +105,8 @@ class Trainer():
             tf.global_variables_initializer(), tf.local_variables_initializer())
         self.sess = tf.Session(config=self.config)
         self.sess.run(self.init_op)
+        self.writer = tf.summary.FileWriter(cfg.model_log, self.sess.graph)
+        self.summary_op = tf.summary.merge_all()
 
     def save_model(self):
         self.saver.save(self.sess, cfg.model_log+self.name+'.ckpt')
@@ -124,9 +128,9 @@ class Trainer():
                                            node_emd_init=self.node_embed_init_d,
                                            relation_emd_init=None)
 
-    def train(self):
+    def train(self, n_epoch=cfg.n_epoch):
         print('start traning...')
-        for epoch in range(1, cfg.n_epoch + 1):
+        for epoch in range(1, n_epoch + 1):
             print('epoch %d' % epoch)
             t = time.time()
 
@@ -135,7 +139,7 @@ class Trainer():
             one_epoch_batch_num = 0.0
 
             # D-step
-            #t1 = time.time()
+            # t1 = time.time()
             for d_epoch in range(cfg.d_epoch):
                 np.random.shuffle(self.node_list)
                 one_epoch_dis_loss = 0.0
@@ -145,10 +149,10 @@ class Trainer():
 
                 range_n = int(np.floor(len(self.node_list) / cfg.batch_size))
                 for index in range(range_n):
-                    #t1 = time.time()
+                    # t1 = time.time()
                     pos_node_ids, pos_relation_ids, pos_node_neighbor_ids, neg_node_ids_1, neg_relation_ids_1, neg_node_neighbor_ids_1, neg_node_ids_2, neg_relation_ids_2, node_fake_neighbor_embedding = self.prepare_data_for_d(
                         index)
-                    #t2 = time.time()
+                    # t2 = time.time()
                     _, dis_loss, pos_loss, neg_loss_1, neg_loss_2 = self.sess.run([self.discriminator.d_updates, self.discriminator.loss, self.discriminator.pos_loss, self.discriminator.neg_loss_1, self.discriminator.neg_loss_2],
                                                                                   feed_dict={self.discriminator.pos_node_id: np.array(pos_node_ids),
                                                                                              self.discriminator.pos_relation_id: np.array(pos_relation_ids),
@@ -195,11 +199,11 @@ class Trainer():
                   (time.time() - t, one_epoch_gen_loss / one_epoch_batch_num, one_epoch_dis_loss / one_epoch_batch_num,
                    one_epoch_pos_loss / one_epoch_batch_num, one_epoch_neg_loss_1 / one_epoch_batch_num, one_epoch_neg_loss_2 / one_epoch_batch_num))
 
-            '''
-            gen_nmi, dis_nmi = self.evaluate_paper_cluster()
-            print('Gen NMI score = %.4f Dis NMI score = %.4f' %
-                  (gen_nmi, dis_nmi))
-            '''
+            gen_score, dis_score = self.evaluate_paper_cluster()
+            print('Generator: Precision = %.4f, Recall = %.4f, F1_score=%.4f' %
+                  (gen_score[0], gen_score[1], gen_score[2]))
+            print('Generator: Precision = %.4f, Recall = %.4f, F1_score=%.4f' %
+                  (dis_score[0], dis_score[1], dis_score[2]))
 
             # save model
             if epoch % 4 == 0:
@@ -287,7 +291,7 @@ class Trainer():
         scores = []
         for i in range(2):
             embedding_matrix = self.sess.run(modes[i].node_embedding_matrix)
-            score = self.aminer_evaluation.evaluate_paper_cluster(
+            score = self.aminer_evaluation.evaluate_paper_cluster_using_Tsne(
                 embedding_matrix)
             scores.append(score)
 
@@ -308,12 +312,15 @@ class Trainer():
 
 
 if __name__ == '__main__':
-    pid2idx_by_name, names = pid2idxMapping()
+    # pid2idx_by_name, names = pid2idxMapping()
     # generate graph by name
-    name = names[0]
-    n_node = len(pid2idx_by_name[name])
-    trainer = Trainer(name, n_node)
-    trainer.train()
+    name = 'xu_shen'
+    n_node = 353
+    trainer = Trainer(name, n_node, author_file=cfg.TRAIN_AUTHOR_PATH,
+                      feature_file='../dataset/features/test/xu_shen.npy')
+    # trainer.restore_model()
+    trainer.train(n_epoch=20)
+    # trainer.train()
     # trainer.write_embeddings_to_file()
 
 '''
