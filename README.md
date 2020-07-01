@@ -1,20 +1,22 @@
 # Name-Disambiguation
-# 二哥早已想好了万全之策
 
-二哥的任务：
-1. 想好万全之策 √
-2. 根据coauthor和org建图
-3. 图神经网络训练
-4. loss函数的改进
+## Semantic features learning
 
+-   step 1: Generate all text file
+-   step 2: Train word2vec model
+-   step 4: Sample paper triples
+-   step 5: Train FCN by triple loss
+-   step 6: Output semantic features
 
-付航的任务：
-1. word2vec -> model
-2. 重新训练模型， min_count=1
-3. 加stopWord
-4. 相似性矩阵计算
-5. DBSCAN
+## Non-semantic(Relational) features learning
 
+-   step 1: Generate paperID-authors/paperID-organizations/paperID-venues pairs file ordered by name
+-   step 2: Generate heterogeneous information network ordered by name
+-   step 3: Train HeGAN ordered by name
+-   step 4: Output relational features trained in generator and discriminator
 
-后期任务
-1. cluster 个数
+## Cluster
+
+-   step 1: Calculate similarity matrices
+-   step 2: Run DBSCAN to cluster
+-   step 3: Assign lonelymountains to cluster to form a cluster itself
