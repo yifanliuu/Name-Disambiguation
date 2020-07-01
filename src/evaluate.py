@@ -45,6 +45,7 @@ class Aminer_evaluation():
         '''
         return precision, recall, f1_score
 
+    # to visualize each epoch's embedding
     def evaluate_paper_cluster_using_Tsne(self, embedding_matrix):
 
         embedding_list = embedding_matrix.tolist()

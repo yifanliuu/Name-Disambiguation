@@ -238,6 +238,8 @@ def generateRawFeatrues(mode='train'):
 
     return semantic_features
 
+# ------------- save paperID-authors pairs ... ---------------------
+
 
 def save_relation(paper_list, pubs_raw, name):
     # trained by all text in the datasets.
@@ -529,13 +531,6 @@ def generateValGraph(name, pid2idx_by_name):
 
     dump_json(graph, cfg.VAL_GRAPH_PATH+name+'.json')
     return len(pid2idx_by_name), n_relation, graph
-
-
-def generateRelationFeatures():
-    """
-    generate graph use co-authors and organization
-    """
-    return
 
 
 if __name__ == "__main__":

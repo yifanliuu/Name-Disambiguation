@@ -39,13 +39,14 @@ VAL_SIMI_SENMATIC_FOLDER = '../dataset/similarity/semantic/val/'
 TRAIN_SIMI_RELATION_FOLDER = '../dataset/similarity/relation/train/'
 VAL_SIMI_RELATION_FOLDER = '../dataset/similarity/relation/val/'
 
+# triples path
 TRIPLETS_PATH = '../dataset/triplets/'
 
+# graph path
 TRAIN_GRAPH_PATH = '../dataset/graph/train/'
 VAL_GRAPH_PATH = '../dataset/graph/val/'
 
 # HeGAN training hyperparameters
-
 batch_size = 32
 lambda_gen = 1e-5
 lambda_dis = 1e-5
@@ -64,4 +65,3 @@ emb_filenames_dis = '../results/dis/'
 
 # model path
 SEMANTIC_MODEL_PATH = '../model/semantic_model.pkl'
-

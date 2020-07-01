@@ -87,7 +87,7 @@ class PaperCluster():
         # label = np.load('../dataset/exp.npy')
         # self.plot_embedding_2d(label,res)
 
-# Do outlier allocation and save cluster reslut in valid_res.json
+    # Do outlier allocation and save cluster reslut in valid_res.json
     def tranfer2file(self, savepath):
         resdict = {}
 

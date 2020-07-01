@@ -15,6 +15,7 @@ import tensorflow as tf
 import config as cfg
 import numpy as np
 
+# NOTE: deprecated Graph AutoEncoder
 '''
 class AutoEncoderTrainer():
     def __init__(self, USE_CUDA=True, max_iter=200, lr=1e-3):
@@ -323,6 +324,7 @@ if __name__ == '__main__':
     # trainer.train()
     # trainer.write_embeddings_to_file()
 
+# NOTE: deprecated Graph AutoEncoder
 '''
 if __name__ == "__main__":
     # word2vec = Word2Vec()

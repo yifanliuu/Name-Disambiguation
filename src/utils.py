@@ -250,11 +250,3 @@ if __name__ == "__main__":
     # m = read_embeddings('xu_shen', 353, rfpath=cfg.TRAIN_AUTHOR_PATH,
     #                    filename=cfg.TRAIN_PUB_FEATURES_PATH)
     # print(m.shape)
-
-    plt.figure(figsize=(8, 8))
-    for i in range(X_norm.shape[0]):
-        plt.text(X_norm[i, 0], X_norm[i, 1], str(pred_Y[i]), color=plt.cm.Set1(pred_Y[i]),
-                 fontdict={'weight': 'bold', 'size': 9})
-    plt.xticks([])
-    plt.yticks([])
-    plt.show()

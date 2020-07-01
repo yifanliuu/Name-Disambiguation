@@ -206,6 +206,7 @@ class Word2Vec():
         self.model = KeyedVectors.load(cfg.WORD_EMBEDDING_MODEL_PATH)
 
 
+# NOTE: deprecated Graph Autoencoder
 # ------------GpraphConvolution Layer --------------
 '''
 class GraphConvolution(Module):
